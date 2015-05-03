@@ -170,13 +170,6 @@ they were given."
 
 (defun apply-compose (&rest functions)
   (lambda (&rest whatever)
-    (loop for func in (reverse functions)
-	 for data = whatever then (apply func data)
-	 do (print data)
-	 finally (return data))))
-
-(defun apply-compose (&rest functions)
-  (lambda (&rest whatever)
     (labels ((func (data funcs)
 		  (if funcs
 		      (apply (car funcs) (func data (cdr funcs)))
@@ -198,19 +191,6 @@ they were given."
 	 nil)))
 
 ;removes found keywords from list, returning cleaned list as second val
-(defun extract-keywords (keywords alist &optional stack)
-  (if keywords
-      (let ((pos (position (car keywords) alist :test #'eq-symb)))
-	(extract-keywords 
-	   (cdr keywords)
-	   (if pos
-	       (xsubseq alist pos (1+ pos) :type 'list)
-	       alist)
-	   (if pos
-	       (acons (car keywords) (elt alist (1+ pos)) stack)
-	       stack)))
-      (values stack alist)))
-
 (defun extract-keywords (keywords alist &key in-list)
   (with-collectors (keypairs< rest<)
     (let ((currkey nil))
