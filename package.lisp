@@ -6,7 +6,10 @@
 		#:with-collectors 
 		#:collecting
 		#:compose
-		#:once-only)
+		#:once-only
+		#:split-sequence
+		#:split-sequence-if
+		#:split-sequence-if-not)
   (:import-from #:alexandria 
 		#:flatten)
   (:shadowing-import-from #:cl-utilities #:collect)
@@ -21,6 +24,9 @@
 	   :autoquote
 	   :def-as-func
 	   :sequence-starts-with
+	   :split-sequence
+	   :split-sequence-if
+	   :split-sequence-if-not
 	   :assoc-cdr
 	   :assoc-all
 	   :assoc-set
@@ -40,6 +46,7 @@
 	   :multiple-valplex
 	   :fetch-keyword
 	   :extract-keywords
+	   :bind-extracted-keywords
 	   :autobind-specials
 	   :def-wrapper-func
 	   :range
@@ -50,7 +57,7 @@
 	   :chunk
 	   :flatten-1
 	   :eq-symb
-	   :eq-symb-upcase
+	   :eq-symb-case
 	   :tree-level
 	   :divide-on-index
 	   :divide-sequence
@@ -92,5 +99,17 @@
 	   :tree-depth
 	   :tree-search-replace
 	   :functionp-in-macro
-	   :key-in-hash?))
+	   :key-in-hash?
+	   :first-match
+	   :awhen2
+	   :awhen2only
+	   :quotef
+	   :make-trycar
+	   :match-a-symbol
+	   :do-alist
+	   :do-hash-table
+	   :ret
+	   :use-package-with-shadowing
+	   :string-unless-number
+	   :symbol-unless-number))
 

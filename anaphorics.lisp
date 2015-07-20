@@ -15,6 +15,16 @@
   `(let ((it ,test-form))
      (when it ,@then-forms)))
 
+(defmacro awhen2 (test &body clauses)
+  (let ((sig (gensym)))
+    `(multiple-value-bind (it ,sig) ,test
+       (when (or it ,sig) ,@clauses))))
+
+(defmacro awhen2only (test &body clauses)
+  (let ((sig (gensym)))
+    `(multiple-value-bind (it ,sig) ,test
+       (when ,sig ,@clauses))))
+
 (defun sharp-backquote-reader (stream sub-char numarg)
   (declare (ignore sub-char))
   (unless numarg (setq numarg 1))

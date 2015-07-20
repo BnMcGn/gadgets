@@ -16,10 +16,28 @@
 (defun symb (&rest args)
   (values (intern (apply #'mkstr args))))
 
+(defun string-unless-number (x)
+  (if (numberp x)
+      x
+      (handler-case
+	  (parse-integer x)
+	(sb-int:simple-parse-error () x))))
+
+(defun symbol-unless-number (x)
+  (let ((val (string-unless-number x)))
+    (if (numberp val) 
+        val
+        (symbolize val))))
+
 (defun autoquote (itm)
   (if (symbolp itm)
       (list 'quote itm)
       itm))
+
+(defmacro ret (var val &body body)
+  `(let ((,var ,val))
+     ,@body
+     ,var))
 
 (defmacro def-as-func (var func-form)
   `(setf (symbol-function ',var) ,func-form))
@@ -44,13 +62,13 @@
 	   (return nil))
       finally (return t)))
 
-(defmacro assoc-cdr (key &rest alist)
-  `(cdr (assoc ,key ,@alist)))
+(defmacro assoc-cdr (&rest params)
+  `(cdr (assoc ,@params)))
 
-(defun assoc-all (item alist)
+(defun assoc-all (item alist &key (test #'eql))
   "Gets all items associated with a key, not just the first. Returns a list"
   (loop for x in alist
-       when (eql (car x) item)
+       when (funcall test (car x) item)
        collect (cdr x)))
        
 ;;Dubious...
@@ -98,6 +116,19 @@
      (lambda (k v)
        (cl-utilities:collect (cons k v)))
      hsh)))
+
+(defmacro do-alist ((key value source) &body body)
+  (with-gensyms (itm)
+    `(dolist (,itm ,source)
+       (let ((,key (car ,itm))
+	     (,value (cdr ,itm)))
+	 ,@body))))
+
+(defmacro do-hash-table ((key value source) &body body)
+  (once-only (source)
+    `(dolist (,key (alexandria:hash-table-keys ,source))
+       (let ((,value (gethash ,key ,source)))
+	 ,@body))))
 
 (defun key-in-hash? (key hashtable)
   (nth-value 1 (gethash key hashtable)))
@@ -176,8 +207,8 @@ they were given."
 		      whatever)))
       (func whatever functions))))
 
-(defun fetch-keyword (key alist &key (parameter t) (in-list t))
-  "Find if a key is in a list. If parameter is true, return the next item 
+(defun fetch-keyword (key alist &key (in-list t))
+  "Find if a key is in a list, return the next item 
   after it. if checklist is true, test the first element of any sublists for the   key and if found return rest of list as parameter."
   (let ((keytest (if in-list 
 		      (lambda (x y)
@@ -186,9 +217,9 @@ they were given."
 		      #'eql)))
     (aif (loop for x on alist
        do (when (funcall keytest key (car x))
-	    (return (list t (if (atom (car x)) (second x) (cdar x))))))
-	 (if parameter (values-list it) t)
-	 nil)))
+	    (return (if (atom (car x)) (second x) (cdar x)))))
+	 (values it t) 
+	 (values nil nil))))
 
 ;removes found keywords from list, returning cleaned list as second val
 (defun extract-keywords (keywords alist &key in-list)
@@ -206,7 +237,31 @@ they were given."
 	  (t (rest< itm))))
       (when currkey
 	(keypairs< (list currkey))))))
-  
+
+(defmacro bind-extracted-keywords ((source remainder &rest keys) &body body)
+  "Removes the keywords named in keys, with their accompanying parameters, from
+the expression supplied in source. Source, minus the keys, is bound to
+remainder. The names of the keys are used for bindings for the accompanying
+values. (bind-extracted-keywords ((1 2 :x 3) data :x) <body>) Results in the 
+body being executed with data bound to (1 2) and x bound to 3."
+  (with-gensyms (extracts)
+    `(multiple-value-bind (,extracts ,remainder) 
+	 (extract-keywords 
+	  ',(mapcar (lambda (x) (if (symbolp x) x (car x))) keys)
+	  ,source)
+       (let ,(collecting
+	      (dolist (k keys)
+		(if (listp k)
+		    (collect (list (symb (car k))
+				   (if (member :multiple k)
+				       `(assoc-all ,(car k) ,extracts)
+				       `(and (assoc ,(car k) ,extracts) 
+					 (cdr (assoc ,(car k) ,extracts))))))
+		    (collect (list (symb k)
+				   `(and (assoc ,k ,extracts) 
+					 (cdr (assoc ,k ,extracts))))))))
+	 ,@body))))
+
 (defmacro autobind-specials ((vars params prefix) &body body)
   "A convenience macro to allow function parameters to override special vars. Given a series of specials named *prefix-thing*, a symbol in vars named thing and prefix set to '*prefix-, then 'thing' will be bound to the value of the keyword thing, if it is found in the params, else *prefix-thing*, that being unbound, by a default value. The default value can be specified by replacing thing in the vars list with (thing <default>), much like in a lambda list."
   (let ((vars (collecting
@@ -281,11 +336,6 @@ they were given."
 	    for ,j from 0 to (- (list-length ,list-val) ,size-val)
 	      for ,varname = (subseq ,list-val ,j ,i) ,@body))))
 
-
-(defmacro eval-always (&body body)
-  `(eval-when (:compile-toplevel :load-toplevel :execute)
-     ,@body))
-
 ;;maybe fix up...
 ;;maybe the macro should just rewrite the code...
 '(defmacro! with-shadow ((fname fun) &body body)
@@ -313,26 +363,32 @@ they were given."
 (defun last-car (list)
   (car (last list)))
 
-(defun trycar-compiler (spec)
-  (let ((crfunc (case (car spec)
-		(#\A #'car)
-		(#\D #'cdr))))
-    (if (null (cdr spec))
-	(lambda (x)
-	  (if (consp x)
-	      (values (funcall crfunc x) t)
-	      (values nil nil)))
-	(let ((cmpfunc (trycar-compiler (cdr spec))))
-	  (lambda (x)
-	    (if (consp x)
-		(funcall cmpfunc (funcall crfunc x))
-		(values nil nil)))))))
+(defun make-trycar (spec)
+  (labels ((proc (spec)
+	     (let ((crfunc (case (car spec)
+			     (#\A #'car)
+			     (#\D #'cdr))))
+	       (if (null (cdr spec))
+		   (lambda (x)
+		     (if (consp x)
+			 (values (funcall crfunc x) t)
+		      (values nil nil)))
+		   (let ((cmpfunc (proc (cdr spec))))
+		     (lambda (x)
+		       (if (consp x)
+			   (funcall cmpfunc (funcall crfunc x))
+			   (values nil nil))))))))
+    (proc (nreverse (coerce (string-trim "CR" (symbol-name spec)) 'list)))))
 
-(defmacro trycar (carspec val)
-  `(funcall 
-    (trycar-compiler
-     ',(nreverse (coerce (string-trim "CR" (symbol-name carspec)) 'list)))
-    ,val))
+(defun trycar (carspec list?)
+  (funcall (make-trycar carspec) list?))
+
+(defmacro tryit (&body body)
+  `(handler-case
+       (values 
+	(progn ,@body)
+	t)
+     (t (e) (declare (ignore e)) (values nil nil))))
        
 (defun chunk (n alist)
   (if (> (list-length alist) n)
@@ -347,12 +403,15 @@ they were given."
 	  (dolist (y x)
 	    (collect y))))))
 
-(defun eq-symb (a b)
+(defun eq-symb-case (a b)
   (or (eq a b) (equal (mkstr a) (mkstr b))))
 
-(defun eq-symb-upcase (a b)
-  (or (eq-symb a b) 
+(defun eq-symb (a b)
+  (or (eq-symb-case a b) 
       (equal (string-upcase (mkstr a)) (string-upcase (mkstr b)))))
+
+(defun match-a-symbol (item symbols)
+  (first-match symbols (lambda (x) (eq-symb x item))))
 
 (defun tree-level (tree level)
   (if (= 0 level)
@@ -404,6 +463,15 @@ they were given."
       (if (funcall test elmt)
 	  (in< elmt)
 	  (out< elmt)))))
+
+(defun first-match (list predicate)
+  (multiple-value-bind (val sig)
+      (dolist (x list)
+	(when (funcall predicate x)
+	  (return (values x t))))
+    (if sig
+	(values val t)
+	(values nil nil))))
 
 (defun keyword-splitter (data &key (flatten t))
   (if data
@@ -519,12 +587,6 @@ they were given."
 		 ,@body
 	       (push (car ,tail) ,head))))))
 
-(defmacro with-gensyms (syms &body body)
-  `(let ,(mapcar #'(lambda (s)
-                     `(,s (gensym)))
-                 syms)
-     ,@body))
-
 ;Returns tlist (copy) with ind set to val. If ind is beyond the length of tlist,
 ;pad out the list with padding
 (defun list-set-place (tlist ind val padding)
@@ -585,16 +647,21 @@ they were given."
 (defmacro pif (test then &optional else)
   (with-gensyms (tres)
     `(let ((,tres ,test))
-       (format t "Print-IF expression: ~a  RESULT: ~a~%" (quote ,test) ,tres)
+       (format t "~%Print-IF expression: ~a  RESULT: ~a~%" (quote ,test) ,tres)
        (if ,test ,then ,else))))
 
 (defmacro print-lambda ((&rest args) &body body)
-  `(lambda (,@args) 
-     (format t "Print-lambda Input:")
-     (print (list ,@(remove-if (lambda (x)
-				 (eq (elt (symbol-name x) 0) #\&)) args)))
-     (format t "~%Print-lambda Output:")
-     (print ,@body)))
+  (with-gensyms (res)
+    `(lambda (,@args) 
+       (format t "~%Print-lambda Input:")
+       (print (list ,@(remove-if (lambda (x)
+				   (eq (elt (symbol-name x) 0) #\&)) args)))
+       (format t "~%Print-lambda Output:")
+       (let ((,res (multiple-value-list ,@body)))
+	 (dolist (x ,res)
+	   (print x))
+	 (print "")
+	 (apply #'values ,res)))))
 
 (defun tree-union (t1 t2 &key 
 		   (cmp (lambda (x y) (eq (car (aslist x)) (car (aslist y)))))
@@ -770,7 +837,8 @@ they were given."
 
 (defmacro collecting-hash-table ((&key (test '(function eql) test-set-p) 
 				       existing (mode :append)) &body body)
-  (and test-set-p existing (error "Can't set test when reusing an existing hash table"))
+  (and test-set-p existing 
+       (error "Can't set test when reusing an existing hash table"))
   (with-gensyms (fill init stor)
     `(let ((,stor (aif ,existing it (make-hash-table :test ,test))))
        (destructuring-bind (,fill ,init) (%hash-collecting-modes ,mode)
@@ -785,3 +853,40 @@ they were given."
 	   ,@body
 	   ,stor)))))
 	       
+(defmacro quotef (setf-spec)
+  `(setf ,setf-spec `(quote ,,setf-spec)))
+
+(defun use-package-with-shadowing (package &optional (target-package *package*))
+  (let ((package (find-package package))
+	(target-package (find-package target-package)))
+    (when (eq package target-package) 
+      (error "Can't import package into itself"))
+    (if (member package (package-use-list target-package))
+	(print "Package already used")
+	(progn 
+	  (do-external-symbols (sym package)
+	    (when (find-symbol (mkstr sym) target-package)
+	      (shadowing-import sym target-package)))
+	  (use-package package target-package)))))
+
+(defmacro with-file-lock ((path &key interval) &body body)
+  "Get an exclusive lock on a file. If lock cannot be obtained, keep
+trying after waiting a while"
+  (let ((lock-path (gensym))
+	(lock-file (gensym)))
+    `(let ((,lock-path (format nil "~a.lock" (namestring ,path))))
+       (unwind-protect
+	    (progn
+	      (loop
+		 :for ,lock-file = (open ,lock-path :direction :output
+					 :if-exists nil
+					 :if-does-not-exist :create)
+		 :until ,lock-file
+		 :do (sleep ,(or interval 0.1))
+		 :finally (close ,lock-file))
+	      ,@body)
+	 (ignore-errors
+	   (delete-file ,lock-path))))))
+
+(defun encode-time-delta (second minute hour day)
+  (+ second (* 60 minute) (* 3600 hour) (* 43200 day)))

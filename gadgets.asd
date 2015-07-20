@@ -7,7 +7,8 @@
   :license "Specify license here"
   :depends-on (#:cl-utilities #:anaphora #:alexandria)
   :components ((:file "package")
-               (:file "gadgets")
-               (:file "tree")
-               (:file "anaphorics")))
+               (:file "early")
+               (:file "anaphorics")
+               (:file "gadgets" :depends-on ("anaphorics" "early"))
+               (:file "tree")))
 
