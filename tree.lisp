@@ -34,11 +34,14 @@
 
 (defun maptree (fn tree)
   "Map a one-argument function FN over subtree of the TREE
-   in depth-first order, returning a new tree with the same structure."
+   in depth-first order, using the output of FN as the continuing tree. Note
+   that FN must continually return its input in order to map over the whole
+   tree."
   (labels ((rec (node)
-             (if (atom node)
-                 (funcall fn node)
-		 (mapcar #'rec node))))
+	     (let ((res (funcall fn node)))
+	       (if (atom res)
+		   res
+		   (mapcar #'rec res)))))
     (awhen tree
       (rec it))))
 
@@ -68,7 +71,7 @@
 
 ;;;End borrowed
 
-(defun tree-search-replace (tree &key (test #'eql) match value 
+(defun leaves-search-replace (tree &key (test #'eql) match value 
 			    valuefunc predicate)
   (let ((val (if valuefunc 
 		 valuefunc 
@@ -76,9 +79,50 @@
 	(tst (if predicate
 		 predicate
 		 (lambda (x) (funcall test x match)))))
-    (maptree
+    (mapleaves
      (lambda (x)
        (if (funcall tst x)
 	   (funcall val x)
 	   x))
      tree)))
+
+(defun tree-search-replace (tree &key (test #'eql) 
+			    (key #'identity)
+			    match value 
+			    valuefunc predicate)
+  (let ((val (if valuefunc 
+		 valuefunc 
+		 (lambda (x) (declare (ignore x)) value)))
+	(tst (if predicate
+		 predicate
+		 (lambda (x) (funcall test x match))))
+	(prunings nil))
+    (let ((res
+	   (maptree
+	    (lambda (x)
+	      (if (funcall tst (funcall key x))
+		  (progn
+		    (push x prunings)
+		    (funcall val x))
+		  x))
+	    tree)))
+      (apply #'values res (nreverse prunings)))))
+
+(defun collect-by-feature (items feature-func)
+  "Group the items in a hash table by the key found by feature-func".
+  (collecting-hash-table (:mode :append :test 'equal)
+    (dolist (itm items)
+      (collect (funcall feature-func itm) itm))))
+
+(defun tree-by-feature (items feature-func &key root 
+			(format #'identity) (identity-func #'identity))
+  "Feature-func creates a child key, by which items will be grouped under a parent. Itentity func creates a parent key to match the child key, in the case that the parent object itself can't serve as a matchable key for the children."
+  (let ((data (collect-by-feature items feature-func)))
+    (labels ((construct-tree (node-key)
+	       (collecting
+		 (dolist (item (gethash node-key data))
+		   (collect 
+		       (cons (funcall format item)
+			     (construct-tree 
+			      (funcall identity-func item))))))))
+      (construct-tree root))))

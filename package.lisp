@@ -5,13 +5,19 @@
   (:import-from #:cl-utilities 
 		#:with-collectors 
 		#:collecting
-		#:compose
 		#:once-only
 		#:split-sequence
 		#:split-sequence-if
 		#:split-sequence-if-not)
   (:import-from #:alexandria 
-		#:flatten)
+		#:flatten
+		#:compose
+		#:curry
+		#:rcurry)
+  (:import-from #:uiop
+		#:strcat)
+  (:import-from #:kebab
+		#:to-lisp-case)
   (:shadowing-import-from #:cl-utilities #:collect)
   (:shadowing-import-from 
     #:anaphora #:it #:aif #:alet)
@@ -111,5 +117,19 @@
 	   :ret
 	   :use-package-with-shadowing
 	   :string-unless-number
-	   :symbol-unless-number))
+	   :symbol-unless-number
+	   :with-file-lock
+	   :encode-time-delta
+	   :map-file-by-line
+	   :strcat
+	   :leaves-search-replace
+	   :collect-by-feature
+	   :tree-by-feature
+	   :*whitespace-characters*
+	   :boolify
+	   :tryit
+	   :keywordize
+	   :keywordize-foreign
+	   :with-keys
+	   :map-tuples))
 

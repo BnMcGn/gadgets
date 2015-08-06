@@ -9,6 +9,12 @@
       (intern (mkstr entity) package)
       (intern (string-upcase entity) package)))
 
+(defun keywordize (entity)
+  (symbolize entity :package 'keyword))
+
+(defun keywordize-foreign (entity)
+  (keyize (string-upcase (to-lisp-case entity))))
+
 (defun mkstr (&rest args)
   (with-output-to-string (s)
     (dolist (a args) (princ a s))))
@@ -62,8 +68,8 @@
 	   (return nil))
       finally (return t)))
 
-(defmacro assoc-cdr (&rest params)
-  `(cdr (assoc ,@params)))
+(defun assoc-cdr (&rest params)
+  (cdr (apply #'assoc params)))
 
 (defun assoc-all (item alist &key (test #'eql))
   "Gets all items associated with a key, not just the first. Returns a list"
@@ -100,7 +106,7 @@
 		   (intern (symbol-name (car i)) keyword-package)
 		   (intern (string-upcase (car i)) keyword-package))
        collect (cdr i))))
-
+ 
 (defun plist->alist (plist)
   (loop for (k v) on plist by #'cddr
 	  collect (cons (intern (symbol-name k)) v)))
@@ -128,6 +134,25 @@
   (once-only (source)
     `(dolist (,key (alexandria:hash-table-keys ,source))
        (let ((,value (gethash ,key ,source)))
+	 ,@body))))
+
+(defmacro with-keys (keys hash-table &body body)
+  (with-gensyms (htsym)
+    `(let ((,htsym ,hash-table))
+       (symbol-macrolet 
+	   ,(mapcar
+	     (lambda (entry)
+	       (let ((sym (symbolize (if (listp entry)
+					 (car entry)
+					 entry)))
+		     (key (if (listp entry)
+			      (second entry)
+			      entry)))
+		 `(,sym (gethash ,(if (and (symbolp key) (not (keywordp key)))
+				      (quote key)
+				      key)
+				 ,htsym))))
+	     keys)
 	 ,@body))))
 
 (defun key-in-hash? (key hashtable)
@@ -360,8 +385,26 @@ body being executed with data bound to (1 2) and x bound to 3."
              (values)))
      ,g!res))
 
+(defparameter *whitespace-characters*
+  '(#\Space #\Newline #\Backspace #\Tab 
+        #\Linefeed #\Page #\Return #\Rubout))
+
 (defun last-car (list)
   (car (last list)))
+
+(defun string-equal-caseless (a b)
+  (string-equal (string-upcase a) (string-upcase b)))
+
+(defun boolify (item)
+  (typecase item
+    (string
+     (if (member (string-trim *whitespace-characters* item)
+		 '("1" "true" "yes" "t") :test #'string-equal-caseless)
+	 t nil))
+    (integer
+     (if (< item 1) nil t))
+    (t t)
+    (otherwise nil)))
 
 (defun make-trycar (spec)
   (labels ((proc (spec)
@@ -564,20 +607,26 @@ body being executed with data bound to (1 2) and x bound to 3."
   (tracker-same :initial initial :test test))
 
 (defmacro do-file-by-line ((line stream-or-path) &body body)
-  (let ((stream (gensym)))
-  `(cond 
-     ((pathnamep ,stream-or-path)
-      (with-open-file (,stream ,stream-or-path)
-	(loop 
-	   for ,line = (read-line ,stream nil 'eof)
-	   until (eq ,line 'eof)
-	   do (progn ,@body))))
-     ((streamp ,stream-or-path)
-      (loop
-	   for ,line = (read-line ,stream-or-path nil 'eof)
-	   until (eq ,line 'eof)
-	   do (progn ,@body)))
-     (t (error "Not a stream or path!")))))
+  (with-gensyms (stream fspec)
+    `(let ((,fspec ,stream-or-path))
+       (cond 
+	 ((or (pathnamep ,fspec) (stringp ,fspec))
+	  (with-open-file (,stream ,fspec)
+	    (loop 
+	       for ,line = (read-line ,stream nil 'eof)
+	       until (eq ,line 'eof)
+	       do (progn ,@body))))
+	 ((streamp ,fspec)
+	  (loop
+	     for ,line = (read-line ,fspec nil 'eof)
+	     until (eq ,line 'eof)
+	     do (progn ,@body)))
+	 (t (error "Not a stream or path!"))))))
+
+(defun map-file-by-line (function stream-or-path)
+  (collecting
+      (do-file-by-line (line stream-or-path)
+	(collect (funcall function line)))))
 
 (defmacro do-list-with-rest ((head tail source) &body body)
   (once-only (source)
@@ -852,7 +901,24 @@ body being executed with data bound to (1 2) and x bound to 3."
 		       (setf (gethash key ,stor) (funcall init value)))))))
 	   ,@body
 	   ,stor)))))
-	       
+
+(defun map-tuples (&rest funcs-and-input/inputs)
+  "Like mapcar, except that multiple functions are permitted, their output - per input element - being gathered as by list*. Map-tuples can be viewed as a combination of mapcar and pairlis. All parameters are presumed to be functions except the last, which is input: 
+   (map-tuples func1 func2... input1) 
+To use multiple input lists (like mapcar) insert the keyword :input between functions and inputs:
+   (map-tuples func1 func2... :input input1 input2...)"
+  (multiple-value-bind (funcs inputs)
+      (multiple-value-bind (part1 part2)
+	  (divide-list funcs-and-input/inputs (curry #'eq :input))
+	(if part2
+	    (values part1 (cdr part2))
+	    (values (butlast part1) (last-car part1))))
+    (apply #'mapcar
+	   (lambda (&rest items)
+	     (apply #'list*
+		    (mapcar (lambda (func) (apply func items)) funcs)))
+	   inputs)))
+			        
 (defmacro quotef (setf-spec)
   `(setf ,setf-spec `(quote ,,setf-spec)))
 
@@ -890,3 +956,4 @@ trying after waiting a while"
 
 (defun encode-time-delta (second minute hour day)
   (+ second (* 60 minute) (* 3600 hour) (* 43200 day)))
+
