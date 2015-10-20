@@ -10,5 +10,6 @@
                (:file "early")
                (:file "anaphorics")
                (:file "gadgets" :depends-on ("anaphorics" "early"))
-               (:file "tree")))
+               (:file "tree")
+               (:file "symtools")))
 

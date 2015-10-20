@@ -131,5 +131,11 @@
 	   :keywordize
 	   :keywordize-foreign
 	   :with-keys
-	   :map-tuples))
+	   :map-tuples
+   :string-true
+           :maplist/step
+   :map-by-2
+           :preserve-other-values
+   :print-cond
+   :hash->plist))
 
