@@ -3,24 +3,21 @@
 (defpackage #:gadgets
   (:use #:cl #:anaphora) ;#:let-over-lambda)
   (:import-from #:cl-utilities
-    #:with-collectors
-    #:collecting
-    #:once-only
-    #:split-sequence
-    #:split-sequence-if
-    #:split-sequence-if-not)
+                #:once-only
+                #:split-sequence
+                #:split-sequence-if
+                #:split-sequence-if-not)
   (:import-from #:alexandria
-    #:flatten
-    #:compose
-    #:curry
-    #:rcurry)
+                #:flatten
+                #:compose
+                #:curry
+                #:rcurry)
   (:import-from #:uiop
-    #:strcat)
+                #:strcat)
   (:import-from #:kebab
-    #:to-lisp-case)
-  (:shadowing-import-from #:cl-utilities #:collect)
+                #:to-lisp-case)
   (:shadowing-import-from
-    #:anaphora #:it #:aif #:alet)
+   #:anaphora #:it #:aif #:alet)
   (:export :with-collectors
    :collecting
            :collect
@@ -150,6 +147,7 @@
            :package-own-internal-symbols
    :package-not-imported
            :return-when
-           :strip-keywords
+   :strip-keywords
            :return-on-true
-           :cat))
+   :cat
+           :collecting-string))

@@ -103,7 +103,7 @@
 (defun assoc-symbolize (alist &key (package *package*))
   (collecting
     (dolist (var alist)
-      (cl-utilities:collect (cons (symbolize (car var) :package package)
+      (collect (cons (symbolize (car var) :package package)
          (cdr var))))))
 
 (defun alist->plist (alist)
@@ -199,9 +199,9 @@
 are defined as local functions which each collect into a separate
 list.  Returns as many values as there are collectors, in the order
 they were given."
-  (cl-utilities::%with-collectors-check-collectors collectors)
+  (%with-collectors-check-collectors collectors)
   (let ((gensyms-alist
-   (cl-utilities::%with-collectors-gensyms-alist collectors)))
+   (%with-collectors-gensyms-alist collectors)))
     `(let ,(loop for collector in collectors
      for tail = (cdr (assoc collector gensyms-alist))
      nconc (list collector tail))
