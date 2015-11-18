@@ -143,14 +143,14 @@
   (with-gensyms (itm)
     `(dolist (,itm ,source)
        (let ((,key (car ,itm))
-       (,value (cdr ,itm)))
-   ,@body))))
+             (,value (cdr ,itm)))
+         ,@body))))
 
 (defmacro do-hash-table ((key value source) &body body)
   (once-only (source)
     `(dolist (,key (alexandria:hash-table-keys ,source))
        (let ((,value (gethash ,key ,source)))
-   ,@body))))
+         ,@body))))
 
 (defmacro with-keys (keys hash-table &body body)
   (with-gensyms (htsym)
@@ -553,6 +553,38 @@ body being executed with data bound to (1 2) and x bound to 3."
 
 (defsetf keyword-value set-keyword-value)
 
+(defun strip-keywords (arglist &keys targets)
+  "Remove keyword arguments from an arglist if their values are nil."
+  (multiple-value-bind (main key) (keyword-splitter arglist)
+    (concatenate
+     'list main
+     (collecting
+       (map-by-2 (lambda (k v) (and targets (member k targets))) )))))
+
+(defun strip-keywords (arglist &key targets (test (lambda (x) (not (null x)))))
+  "Remove keyword arguments from an arglist if their values are nil."
+  (labels ((proc-outer (arglist)
+             (if (null arglist)
+                 nil (if (keywordp (car arglist))
+                         (proc-keys arglist)
+                         (cons (car arglist) (proc-outer (cdr arglist))))))
+           (proc-keys (arglist)
+             (if (null arglist)
+                 nil
+                 (if targets
+                     (if (member (car arglist) targets)
+                         (if (funcall test (second arglist))
+                             (list* (car arglist) (second arglist)
+                                    (proc-keys (cddr arglist)))
+                             (proc-keys (cddr arglist)))
+                         (list* (car arglist) (second arglist)
+                                (proc-keys (cddr arglist))))
+                     (if (funcall test (second arglist))
+                         (list* (car arglist) (second arglist)
+                                (proc-keys (cddr arglist)))
+                         (proc-keys (cddr arglist)))))))
+    (proc-outer arglist)))
+
 (defmacro with-any/all/none (&body body)
   (let ((name (gensym)))
     `(block ,name
@@ -881,6 +913,10 @@ body being executed with data bound to (1 2) and x bound to 3."
     ,@body
     ,data)))))
 
+(defmacro collecting-string (&body body)
+  `(apply #'strcat
+         (collecting ,@body)))
+
 (defun %hash-collecting-modes (mode)
   (case mode
     (:replace (list
@@ -994,3 +1030,15 @@ trying after waiting a while"
 
 (defun encode-time-delta (second minute hour day)
   (+ second (* 60 minute) (* 3600 hour) (* 43200 day)))
+
+(defmacro return-on-true (clause &optional from-target)
+  "Executes return/return-from on the result of clause if it is true"
+  (with-gensyms (value)
+    `(let ((,value ,clause))
+       (when ,value
+         ,(if from-target
+              `(return-from ,from-target ,value)
+              `(return ,value))))))
+
+(defun cat (&rest items)
+  (apply #'concatenate 'list items))
