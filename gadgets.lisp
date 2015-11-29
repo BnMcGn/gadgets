@@ -378,10 +378,23 @@ body being executed with data bound to (1 2) and x bound to 3."
       for ,j from 0 to (- (list-length ,list-val) ,size-val)
         for ,varname = (subseq ,list-val ,j ,i) ,@body))))
 
+(defmacro do-window ((var/s source
+                      &key (size 2) (step 1)
+                        start-padding) &body body)
+  (let ((size (if (listp var/s) (length var/s) size))
+        (data (gensym))
+        (i (gensym)))
+    `(let ((,data (concatenate 'list ,start-padding ,source)))
+       (dolist (,i (range 0 (1+ (- (length ,data) ,size)) ,step))
+         ,(if (listp var/s)
+              `(destructuring-bind ,var/s (subseq ,data ,i (+ ,i ,size))
+                 ,@body)
+              `(let ((,var/s (subseq ,data ,i (+ ,i ,size))))
+                 ,@body))))))
 
 (defparameter *whitespace-characters*
   '(#\Space #\Newline #\Backspace #\Tab
-        #\Linefeed #\Page #\Return #\Rubout))
+    #\Linefeed #\Page #\Return #\Rubout))
 
 (defun last-car (list)
   (car (last list)))
