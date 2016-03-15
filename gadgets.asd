@@ -5,7 +5,8 @@
   :description "Describe gadgets here"
   :author "Your Name <your.name@example.com>"
   :license "Specify license here"
-  :depends-on (#:cl-utilities #:anaphora #:alexandria #:uiop #:kebab)
+  :depends-on (#:cl-utilities #:anaphora #:alexandria #:uiop #:kebab
+               #:cl-hash-util) 
   :components ((:file "package")
                (:file "early")
                (:file "collecting")

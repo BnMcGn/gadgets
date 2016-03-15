@@ -106,39 +106,6 @@
       (collect (cons (symbolize (car var) :package package)
          (cdr var))))))
 
-(defun alist->plist (alist)
-  "Converts an alist to plist."
-  (let ((keyword-package (find-package :keyword)))
-    (loop for i in alist
-       collect (if (symbolp (car i))
-       (intern (symbol-name (car i)) keyword-package)
-       (intern (string-upcase (car i)) keyword-package))
-       collect (cdr i))))
-
-(defun plist->alist (plist)
-  (loop for (k v) on plist by #'cddr
-    collect (cons (intern (symbol-name k)) v)))
-
-(defun alist->hash (al &key (mode :replace) existing)
-  (collecting-hash-table (:mode mode :existing existing)
-    (dolist (x (reverse al))
-      (collect (car x) (cdr x)))))
-
-(defun hash->alist (hsh)
-  (cl-utilities:collecting
-    (maphash
-     (lambda (k v)
-       (cl-utilities:collect (cons k v)))
-     hsh)))
-
-(defun hash->plist (hsh)
-  (cl-utilities:collecting
-    (maphash
-     (lambda (k v)
-       (cl-utilities:collect k)
-       (cl-utilities:collect v))
-     hsh)))
-
 (defmacro do-alist ((key value source) &body body)
   (with-gensyms (itm)
     `(dolist (,itm ,source)
@@ -151,25 +118,6 @@
     `(dolist (,key (alexandria:hash-table-keys ,source))
        (let ((,value (gethash ,key ,source)))
          ,@body))))
-
-(defmacro with-keys (keys hash-table &body body)
-  (with-gensyms (htsym)
-    `(let ((,htsym ,hash-table))
-       (symbol-macrolet
-     ,(mapcar
-       (lambda (entry)
-         (let ((sym (symbolize (if (listp entry)
-           (car entry)
-           entry)))
-         (key (if (listp entry)
-            (second entry)
-            entry)))
-     `(,sym (gethash ,(if (and (symbolp key) (not (keywordp key)))
-              (quote key)
-              key)
-         ,htsym))))
-       keys)
-   ,@body))))
 
 (defun key-in-hash? (key hashtable)
   (nth-value 1 (gethash key hashtable)))
@@ -938,47 +886,6 @@ body being executed with data bound to (1 2) and x bound to 3."
 (defmacro collecting-string (&body body)
   `(apply #'strcat
          (collecting ,@body)))
-
-(defun %hash-collecting-modes (mode)
-  (case mode
-    (:replace (list
-         (lambda (e n) (declare (ignore e)) n)
-         (lambda (v) v)))
-    (:keep (list
-      (lambda (e n) (declare (ignore n)) e)
-      (lambda (v) v)))
-    (:tally (list
-       (lambda (e n) (declare (ignore n)) (1+ e))
-       (lambda (v) (declare (ignore v)) 1)))
-    (:sum (list
-     (lambda (e n) (+ e n))
-     (lambda (v) v)))
-    (:append (list
-        (lambda (e n) (nconc e (list n)))
-        (lambda (v) (list v))))
-    (:push (list
-      (lambda (e n) (cons n e))
-      (lambda (v) (list v))))
-    (otherwise (error "Mode not found"))))
-
-(eval-always
-  (defmacro collecting-hash-table ((&key (test '(function eql) test-set-p)
-                                     existing (mode :append)) &body body)
-   (and test-set-p existing
-        (error "Can't set test when reusing an existing hash table"))
-   (with-gensyms (fill init stor)
-     `(let ((,stor (aif ,existing it (make-hash-table :test ,test))))
-        (destructuring-bind (,fill ,init) (%hash-collecting-modes ,mode)
-          (labels
-              ((collect (key value &key mode)
-                 (destructuring-bind (fill init)
-                     (if mode (%hash-collecting-modes mode) (list ,fill ,init))
-                   (multiple-value-bind (itm exists) (gethash key ,stor)
-                     (if exists
-                         (setf (gethash key ,stor) (funcall fill itm value))
-                         (setf (gethash key ,stor) (funcall init value)))))))
-            ,@body
-            ,stor))))))
 
 (defun map-tuples (&rest funcs-and-input/inputs)
   "Like mapcar, except that multiple functions are permitted, their output - per input element - being gathered as by list*. Map-tuples can be viewed as a combination of mapcar and pairlis. All parameters are presumed to be functions except the last, which is input:
