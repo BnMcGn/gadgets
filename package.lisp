@@ -150,4 +150,7 @@
    :strip-keywords
            :return-on-true
    :cat
-           :collecting-string))
+           :collecting-string
+   :do-window
+           :extend-pathname
+           :flatten-when))

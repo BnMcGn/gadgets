@@ -453,6 +453,15 @@ body being executed with data bound to (1 2) and x bound to 3."
     (dolist (y x)
       (collect y))))))
 
+(defun flatten-when (predicate items)
+  (let ((res nil))
+    (dolist (itm items)
+      (if (funcall predicate itm)
+          (dolist (subitm itm)
+            (push subitm res))
+          (push itm res)))
+    (nreverse res)))
+
 (defun eq-symb-case (a b)
   (or (eq a b) (equal (mkstr a) (mkstr b))))
 
@@ -952,23 +961,24 @@ body being executed with data bound to (1 2) and x bound to 3."
       (lambda (v) (list v))))
     (otherwise (error "Mode not found"))))
 
-(defmacro collecting-hash-table ((&key (test '(function eql) test-set-p)
-               existing (mode :append)) &body body)
-  (and test-set-p existing
-       (error "Can't set test when reusing an existing hash table"))
-  (with-gensyms (fill init stor)
-    `(let ((,stor (aif ,existing it (make-hash-table :test ,test))))
-       (destructuring-bind (,fill ,init) (%hash-collecting-modes ,mode)
-   (labels
-       ((collect (key value &key mode)
-         (destructuring-bind (fill init)
-       (if mode (%hash-collecting-modes mode) (list ,fill ,init))
-     (multiple-value-bind (itm exists) (gethash key ,stor)
-       (if exists
-           (setf (gethash key ,stor) (funcall fill itm value))
-           (setf (gethash key ,stor) (funcall init value)))))))
-     ,@body
-     ,stor)))))
+(eval-always
+  (defmacro collecting-hash-table ((&key (test '(function eql) test-set-p)
+                                     existing (mode :append)) &body body)
+   (and test-set-p existing
+        (error "Can't set test when reusing an existing hash table"))
+   (with-gensyms (fill init stor)
+     `(let ((,stor (aif ,existing it (make-hash-table :test ,test))))
+        (destructuring-bind (,fill ,init) (%hash-collecting-modes ,mode)
+          (labels
+              ((collect (key value &key mode)
+                 (destructuring-bind (fill init)
+                     (if mode (%hash-collecting-modes mode) (list ,fill ,init))
+                   (multiple-value-bind (itm exists) (gethash key ,stor)
+                     (if exists
+                         (setf (gethash key ,stor) (funcall fill itm value))
+                         (setf (gethash key ,stor) (funcall init value)))))))
+            ,@body
+            ,stor))))))
 
 (defun map-tuples (&rest funcs-and-input/inputs)
   "Like mapcar, except that multiple functions are permitted, their output - per input element - being gathered as by list*. Map-tuples can be viewed as a combination of mapcar and pairlis. All parameters are presumed to be functions except the last, which is input:
@@ -1055,3 +1065,17 @@ trying after waiting a while"
 
 (defun cat (&rest items)
   (apply #'concatenate 'list items))
+
+(defun extend-pathname (path &rest extensions)
+  (let ((exts 
+          (apply #'concatenate 'list
+           (mapcar (lambda (x)
+                     (if (stringp x)
+                         (list x)
+                         (let ((pd (pathname-directory x)))
+                           (unless (eq (car pd) :relative)
+                             (error "Extension must not be an absolute path"))
+                           (cdr pd))))
+                   extensions))))
+    (make-pathname :defaults path
+                   :directory (append (pathname-directory path) exts))))
