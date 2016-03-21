@@ -1,7 +1,7 @@
 ;;;; package.lisp
 
 (defpackage #:gadgets
-  (:use #:cl #:anaphora) ;#:let-over-lambda)
+  (:use #:cl #:anaphora #:cl-hash-util)
   (:import-from #:cl-utilities
                 #:once-only
                 #:split-sequence
@@ -19,138 +19,139 @@
   (:shadowing-import-from
    #:anaphora #:it #:aif #:alet)
   (:export :with-collectors
-   :collecting
+           :collecting
            :collect
-   :mkstr
+           :mkstr
            :symb
-   :symbolize
+           :symbolize
            :autoquote
-   :def-as-func
+           :def-as-func
            :sequence-starts-with
-   :split-sequence
+           :split-sequence
            :split-sequence-if
-   :split-sequence-if-not
+           :split-sequence-if-not
            :assoc-cdr
-   :assoc-all
+           :assoc-all
            :assoc-set
-   :assoc-symbolize
+           :assoc-symbolize
            :alist->plist
-   :plist->alist
+           :plist->alist
            :alist->hash
-   :hash->alist
+           :hash->alist
            :in-plist?
-   :merge-plists
+           :merge-plists
            :with-slow-collectors
-   :fetch-slow-collectors
+           :fetch-slow-collectors
            :xsubseq
-   :apply-compose
+           :apply-compose
            :multiple-value-passthru
-   :multiple-value-apply
+           :multiple-value-apply
            :multiple-valplex
-   :fetch-keyword
+           :fetch-keyword
            :extract-keywords
-   :bind-extracted-keywords
+           :bind-extracted-keywords
            :autobind-specials
-   :def-wrapper-func
+           :def-wrapper-func
            :range
-   :loop-window
+           :loop-window
            :eval-always
-   :last-car
+           :last-car
            :trycar
-   :chunk
+           :chunk
            :flatten-1
-   :eq-symb
+           :eq-symb
            :eq-symb-case
-   :tree-level
+           :tree-level
            :divide-on-index
-   :divide-sequence
+           :divide-sequence
            :divide-list
-   :remove-if-member
+           :remove-if-member
            :splitfilter
-   :keyword-splitter
+           :keyword-splitter
            :keyword-value
-   :set-keyword-value
+           :set-keyword-value
            :with-any/all/none
-   :any
+           :any
            :all
-   :none
+           :none
            :awrap-expr-if
-   :aslist
+           :aslist
            :aif2
-   :aif2only
+           :aif2only
            :it
-   :awhen
+           :awhen
            :tracker-same
-   :tracker-different
+           :tracker-different
            :do-file-by-line
-   :do-list-with-rest
+           :do-list-with-rest
            :list-set-place
-   :tree-union
+           :tree-union
            :dotree
-   :tree-tracker
+           :tree-tracker
            :index->accessor
-   :pif
+           :pif
            :print-lambda
-   :collecting-set
+           :collecting-set
            :collecting-hash-table
-   :funcall-in-macro
+           :funcall-in-macro
            :apply-in-macro
-   :doleaves
+           :doleaves
            :maptree
-   :mapleaves
+           :mapleaves
            :tree-size
-   :tree-depth
+           :tree-depth
            :tree-search-replace
-   :functionp-in-macro
+           :functionp-in-macro
            :key-in-hash?
-   :first-match
+           :first-match
            :awhen2
-   :awhen2only
+           :awhen2only
            :quotef
-   :make-trycar
+           :make-trycar
            :match-a-symbol
-   :do-alist
+           :do-alist
            :do-hash-table
-   :ret
+           :ret
            :use-package-with-shadowing
-   :string-unless-number
+           :string-unless-number
            :symbol-unless-number
-   :with-file-lock
+           :with-file-lock
            :encode-time-delta
-   :map-file-by-line
+           :map-file-by-line
            :strcat
-   :leaves-search-replace
+           :leaves-search-replace
            :collect-by-feature
-   :tree-by-feature
+           :tree-by-feature
            :*whitespace-characters*
-   :boolify
+           :boolify
            :tryit
-   :keywordize
+           :keywordize
            :keywordize-foreign
-   :with-keys
+           :with-keys
            :map-tuples
-   :string-true
+           :string-true
            :maplist/step
-   :map-by-2
+           :map-by-2
            :preserve-other-values
-   :print-cond
+           :print-cond
            :hash->plist
-   :package-external-symbols
+           :package-external-symbols
            :ensure-package
-   :package-own-symbols
+           :package-own-symbols
            :package-exported-symbols
-   :generic-p
+           :generic-p
            :class-p
-   :make-symbol-flags
+           :make-symbol-flags
            :display-symbol
-   :package-internal-symbols
+           :package-internal-symbols
            :package-own-internal-symbols
-   :package-not-imported
+           :package-not-imported
            :return-when
-   :strip-keywords
+           :strip-keywords
            :return-on-true
-   :cat
+           :cat
            :collecting-string
-   :do-window
+           :do-window
            :extend-pathname
-           :flatten-when))
+           :flatten-when
+           :print-and))

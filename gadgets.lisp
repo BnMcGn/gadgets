@@ -729,9 +729,23 @@ body being executed with data bound to (1 2) and x bound to 3."
               (preserve-other-values
                (progn ,@(cdr cl))
                (lambda (x)
-                 (format t "~%Print-cond: Clause ~a: Result: ~a~%"
+                 (format t "~&Print-cond: Clause ~a: Result: ~a~%"
                          ,count x)
                  x)))))))))
+
+(defmacro print-and (&rest forms)
+  (let ((count 0)
+        (itm (gensym)))
+    `(and
+      ,@(collecting
+         (dolist (f forms)
+           (incf count)
+           (collect
+               `(let ((,itm ,f))
+                  (progn (if ,itm
+                             (format t "~&Print-and: Clause ~a: ~a~%" ,count ,itm)
+                             (format t "~&Print-and: FAILED at ~a%" ,count))
+                         ,itm))))))))
 
 (defun tree-union (t1 t2 &key
        (cmp (lambda (x y) (eq (car (aslist x)) (car (aslist y)))))
