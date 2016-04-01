@@ -744,7 +744,7 @@ body being executed with data bound to (1 2) and x bound to 3."
                `(let ((,itm ,f))
                   (progn (if ,itm
                              (format t "~&Print-and: Clause ~a: ~a~%" ,count ,itm)
-                             (format t "~&Print-and: FAILED at ~a%" ,count))
+                             (format t "~&Print-and: FAILED at ~a~%" ,count))
                          ,itm))))))))
 
 (defun tree-union (t1 t2 &key
