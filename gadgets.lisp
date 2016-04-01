@@ -450,14 +450,27 @@ body being executed with data bound to (1 2) and x bound to 3."
 
 (defun divide-list (alist test)
   (labels ((proc (accum alist test)
-       (if alist
-     (if (funcall test (car alist))
-         (values (nreverse accum) alist)
-         (proc (cons (car alist) accum)
-         (cdr alist)
-         test))
-     (values (nreverse accum) nil))))
+             (if alist
+                 (if (funcall test (car alist))
+                     (values (nreverse accum) alist)
+                     (proc (cons (car alist) accum)
+                           (cdr alist)
+                           test))
+                 (values (nreverse accum) nil))))
     (proc nil alist test)))
+
+(defun divide-list+ (alist test)
+  "Like divide-list, but includes the item that triggered test in the first
+  list."
+  (labels ((proc (accum alist)
+             (if alist
+                 (if (funcall test (car alist))
+                     (values (nreverse (cons (car alist) accum))
+                             (cdr alist))
+                     (proc (cons (car alist) accum)
+                           (cdr alist)))
+                 (values (nreverse accum) nil))))
+    (proc nil alist)))
 
 (defun remove-if-member (seq things &key key (test #'eq))
   (let ((keyfunc (or key (lambda (x) x))))

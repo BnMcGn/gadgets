@@ -154,4 +154,5 @@
            :do-window
            :extend-pathname
            :flatten-when
-           :print-and))
+           :print-and
+           :divide-list+))
