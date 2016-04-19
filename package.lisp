@@ -155,4 +155,5 @@
            :extend-pathname
            :flatten-when
            :print-and
-           :divide-list+))
+           :divide-list+
+           :sequences-start-same))

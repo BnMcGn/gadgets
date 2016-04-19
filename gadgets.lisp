@@ -67,15 +67,24 @@
 (defun functionp-in-macro (item)
   (and (consp item) (member (car item) '(function lambda))))
 
-(defun sequence-starts-with (seq seq2)
+(defun sequences-start-same (seq seq2)
    (loop for x across seq2
       for y across seq
       do (when (not (eq x y))
      (return nil))
       finally (return t)))
 
+(defun sequence-starts-with (seq testseq)
+  (let ((slen (length testseq)))
+    (if (< (length seq) slen)
+        nil
+        (dotimes (i slen t)
+          (unless (eq (elt seq i) (elt testseq i))
+            (return nil))))))
+
 (defun sequence-ends-with (seq testseq)
-  ()(subseq seq (max 0 (- (length seq) (length testseq)))))
+  (subseq seq (max 0 (- (length seq) (length testseq)))))
+
 (defun assoc-cdr (&rest params)
   (cdr (apply #'assoc params)))
 
