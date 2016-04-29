@@ -493,6 +493,17 @@ body being executed with data bound to (1 2) and x bound to 3."
     (in< elmt)
     (out< elmt)))))
 
+(defun split-sequence-on-subseq (search-seq target-seq)
+  (let ((len (length search-seq)))
+    (labels ((proc (seq stack)
+               (let ((pos (search search-seq seq)))
+                 (if pos
+                     (proc (subseq seq (+ pos len))
+                           (cons (subseq seq 0 pos)
+                                 stack))
+                     (nreverse (cons seq stack))))))
+      (proc target-seq nil))))
+
 (defun first-match (list predicate)
   (multiple-value-bind (val sig)
       (dolist (x list)
@@ -958,6 +969,9 @@ To use multiple input lists (like mapcar) insert the keyword :input between func
   (maplist/step (lambda (x)
                   (funcall func (car x) (second x)))
                 2 list))
+
+(defun mapcan-by-2 (func list)
+  (apply #'concatenate 'list (map-by-2 func list)))
 
 (defmacro quotef (setf-spec)
   `(setf ,setf-spec `(quote ,,setf-spec)))

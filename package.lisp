@@ -156,4 +156,6 @@
            :flatten-when
            :print-and
            :divide-list+
-           :sequences-start-same))
+           :sequences-start-same
+           :split-sequence-on-subseq
+           :mapcan-by-2))
