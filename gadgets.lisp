@@ -1036,3 +1036,31 @@ trying after waiting a while"
                    extensions))))
     (make-pathname :defaults path
                    :directory (append (pathname-directory path) exts))))
+
+(defun call-with-temporary-directory
+    (thunk &key (want-pathname-p t))
+  (loop
+     with donep = nil
+     until donep
+     do
+       (uiop:with-temporary-file (:pathname tfile :type "lck")
+         (let ((dirname
+                (uiop:ensure-directory-pathname
+                 (make-pathname :defaults tfile :type "dir"))))
+         (unless (uiop:directory-exists-p dirname)
+           (setf donep t)
+           (ensure-directories-exist dirname)
+           (unwind-protect
+                (if want-pathname-p
+                    (funcall thunk dirname)
+                    (uiop:with-current-directory (dirname)
+                      (funcall thunk)))
+             (uiop:delete-directory-tree
+              dirname
+              :validate t)))))))
+
+(defmacro with-temporary-directory ((&key pathname) &body body)
+  `(call-with-temporary-directory
+    (lambda (,@pathname)
+      ,@body)))
+
