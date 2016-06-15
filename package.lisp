@@ -158,4 +158,7 @@
            :divide-list+
            :sequences-start-same
            :split-sequence-on-subseq
-           :mapcan-by-2))
+           :mapcan-by-2
+           :call-with-temporary-directory
+           :with-temporary-directory
+           :try-awhile))

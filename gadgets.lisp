@@ -1064,3 +1064,23 @@ trying after waiting a while"
     (lambda (,@pathname)
       ,@body)))
 
+(defun try-awhile (predicate &key (sleep 0.001) (wait 1.0) on-success on-fail)
+  (let ((wait-units (* wait internal-time-units-per-second))
+        (start (get-internal-real-time))
+        (result nil))
+    (loop
+       do
+         (setf result (funcall predicate))
+         (when result
+           (return
+             (if on-success
+                 (funcall on-success)
+                 result)))
+         (when (< (+ start wait-units) (get-internal-real-time))
+           (return
+             (if on-fail
+                 (funcall on-fail)
+                 nil)))
+         (when sleep
+           (sleep sleep)))))
+
