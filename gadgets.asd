@@ -14,5 +14,6 @@
                (:file "gadgets" :depends-on ("anaphorics" "early" 
                                              "collecting"))
                (:file "tree")
-               (:file "symtools")))
+               (:file "symtools")
+               (:file "recompile"))
 

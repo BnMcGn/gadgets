@@ -161,4 +161,8 @@
            :mapcan-by-2
            :call-with-temporary-directory
            :with-temporary-directory
-           :try-awhile))
+           :try-awhile
+           :ensure-member
+           :watched-for-recompile
+           :send-recompiled-signal
+           :recompile-watcher))
