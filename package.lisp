@@ -163,6 +163,6 @@
            :with-temporary-directory
            :try-awhile
            :ensure-member
-           :watched-for-recompile
            :send-recompiled-signal
-           :recompile-watcher))
+           :recompile-watcher
+           :watch-for-recompile))
