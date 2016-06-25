@@ -67,6 +67,9 @@
 (defun functionp-in-macro (item)
   (and (consp item) (member (car item) '(function lambda))))
 
+(defun get-function-name-in-macro (item)
+  (and (listp item) (eq 'function (car item)) (second item)))
+
 (defun sequences-start-same (seq seq2)
    (loop for x across seq2
       for y across seq

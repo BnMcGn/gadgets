@@ -15,5 +15,5 @@
                                              "collecting"))
                (:file "tree")
                (:file "symtools")
-               (:file "recompile"))
+               (:file "recompile")))
 

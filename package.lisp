@@ -164,5 +164,9 @@
            :try-awhile
            :ensure-member
            :send-recompiled-signal
-           :recompile-watcher
-           :watch-for-recompile))
+           :watch-for-recompile
+           :request-watch-on-names
+           :get-function-name-in-macro
+           :dependency-watcher
+           :dependency-auto-watcher
+           :watch-for-recompile/auto-watcher))
