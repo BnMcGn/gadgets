@@ -62,7 +62,7 @@
           for i from 0
           collect
             `(let ((*recomp-targets-to-watch* nil))
-               ,@code
+               ,code
                (register-recompile-watcher
                 ',(let ((*package* (symbol-package label)))
                        (symb label i))
