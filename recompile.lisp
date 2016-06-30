@@ -31,13 +31,14 @@
     (ensure-member (gethash dep *recomp-by-target*) label)))
 
 (defmacro watch-for-recompile (&body body)
-  `(progn
-     ,@body
-     (send-recompiled-signal
-      ',(collecting
-        (do-window ((def name) (flatten body))
-          (when (member def '(defun defmacro defparameter))
-            (collect name)))))))
+  (let ((names (collecting
+                   (do-window ((def name) (flatten body))
+                     (when (member def '(defun defmacro defparameter))
+                       (collect name))))))
+    `(prog1
+         (progn ,@body)
+       (request-watch-on-names ',names)
+       (send-recompiled-signal ',names))))
 
 (defmacro watch-for-recompile/auto-watcher (label &body body)
   `(watch-for-recompile
@@ -66,5 +67,5 @@
                (register-recompile-watcher
                 ',(let ((*package* (symbol-package label)))
                        (symb label i))
-                '(progn ,@code)
+                '(progn ,code)
                 *recomp-targets-to-watch*)))))
