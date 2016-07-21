@@ -510,11 +510,11 @@ body being executed with data bound to (1 2) and x bound to 3."
 (defun first-match (list predicate)
   (multiple-value-bind (val sig)
       (dolist (x list)
-  (when (funcall predicate x)
-    (return (values x t))))
+        (when (funcall predicate x)
+          (return (values x t))))
     (if sig
-  (values val t)
-  (values nil nil))))
+        (values val t)
+        (values nil nil))))
 
 (defun keyword-splitter (data &key (flatten t))
   (if data
@@ -782,6 +782,11 @@ body being executed with data bound to (1 2) and x bound to 3."
                              (format t "~&Print-and: Clause ~a: ~a~%" ,count ,itm)
                              (format t "~&Print-and: FAILED at ~a~%" ,count))
                          ,itm))))))))
+
+(defmacro print-all-values (expr)
+  `(let ((res (multiple-value-list ,expr)))
+     (mapc #'print res)
+     (apply #'values res)))
 
 (defun tree-union (t1 t2 &key
        (cmp (lambda (x y) (eq (car (aslist x)) (car (aslist y)))))

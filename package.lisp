@@ -169,4 +169,5 @@
            :get-function-name-in-macro
            :dependency-watcher
            :dependency-auto-watcher
-           :watch-for-recompile/auto-watcher))
+           :watch-for-recompile/auto-watcher
+           :print-all-values))
