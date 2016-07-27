@@ -170,4 +170,5 @@
            :dependency-watcher
            :dependency-auto-watcher
            :watch-for-recompile/auto-watcher
-           :print-all-values))
+           :print-all-values
+           :or2))

@@ -200,6 +200,19 @@ they were given."
        (declare (ignorable ,@symblist))
        ,@form-with-Vn-vars)))
 
+(defmacro or2 (&rest clauses)
+  "A version of or that bases its decision on the second value of each clause. Forms that return no second value are considered T."
+  (with-gensyms (blok)
+    `(block ,blok
+       ,@(mapcar
+          (lambda (clause)
+            `(let ((res (multiple-value-list ,clause)))
+               (when
+                   (or (< 2 (length res))
+                       (elt res 1))
+                 (return-from ,blok (car res)))))
+          clauses))))
+
 (defun apply-compose (&rest functions)
   (lambda (&rest whatever)
     (labels ((func (data funcs)
@@ -212,15 +225,15 @@ they were given."
   "Find if a key is in a list, return the next item
   after it. if checklist is true, test the first element of any sublists for the   key and if found return rest of list as parameter."
   (let ((keytest (if in-list
-          (lambda (x y)
-      (or (eql x y)
-          (and (consp y) (eql x (car y)))))
-          #'eql)))
+                     (lambda (x y)
+                       (or (eql x y)
+                           (and (consp y) (eql x (car y)))))
+                     #'eql)))
     (aif (loop for x on alist
-       do (when (funcall keytest key (car x))
-      (return (if (atom (car x)) (second x) (cdar x)))))
-   (values it t)
-   (values nil nil))))
+            do (when (funcall keytest key (car x))
+                 (return (if (atom (car x)) (second x) (cdar x)))))
+         (values it t)
+         (values nil nil))))
 
 ;removes found keywords from list, returning cleaned list as second val
 (defun extract-keywords (keywords alist &key in-list)
@@ -396,8 +409,8 @@ body being executed with data bound to (1 2) and x bound to 3."
 (defmacro tryit (&body body)
   `(handler-case
        (values
-  (progn ,@body)
-  t)
+        (progn ,@body)
+        t)
      (t (e) (declare (ignore e)) (values nil nil))))
 
 (defun chunk (n alist)
@@ -493,8 +506,8 @@ body being executed with data bound to (1 2) and x bound to 3."
   (with-collectors (in< out<)
     (dolist (elmt alist)
       (if (funcall test elmt)
-    (in< elmt)
-    (out< elmt)))))
+          (in< elmt)
+          (out< elmt)))))
 
 (defun split-sequence-on-subseq (search-seq target-seq)
   (let ((len (length search-seq)))
@@ -997,24 +1010,24 @@ To use multiple input lists (like mapcar) insert the keyword :input between func
         (shadowing-import sym target-package)))
     (use-package package target-package)))))
 
-(defmacro with-file-lock ((path &key interval) &body body)
+(defmacro with-file-lock ((path &key (interval 0.1)) &body body)
   "Get an exclusive lock on a file. If lock cannot be obtained, keep
 trying after waiting a while"
   (let ((lock-path (gensym))
-  (lock-file (gensym)))
+        (lock-file (gensym)))
     `(let ((,lock-path (format nil "~a.lock" (namestring ,path))))
        (unwind-protect
-      (progn
-        (loop
-     :for ,lock-file = (open ,lock-path :direction :output
-           :if-exists nil
-           :if-does-not-exist :create)
-     :until ,lock-file
-     :do (sleep ,(or interval 0.1))
-     :finally (close ,lock-file))
-        ,@body)
-   (ignore-errors
-     (delete-file ,lock-path))))))
+            (progn
+              (loop
+                 :for ,lock-file = (open ,lock-path :direction :output
+                                         :if-exists nil
+                                         :if-does-not-exist :create)
+                 :until ,lock-file
+                 :do (sleep ,interval)
+                 :finally (close ,lock-file))
+              ,@body)
+         (ignore-errors
+           (delete-file ,lock-path))))))
 
 (defun encode-time-delta (second minute hour day)
   (+ second (* 60 minute) (* 3600 hour) (* 43200 day)))
