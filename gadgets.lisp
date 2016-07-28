@@ -208,7 +208,7 @@ they were given."
           (lambda (clause)
             `(let ((res (multiple-value-list ,clause)))
                (when
-                   (or (< 2 (length res))
+                   (or (> 2 (length res))
                        (elt res 1))
                  (return-from ,blok (car res)))))
           clauses))))
@@ -228,12 +228,13 @@ they were given."
                      (lambda (x y)
                        (or (eql x y)
                            (and (consp y) (eql x (car y)))))
-                     #'eql)))
-    (aif (loop for x on alist
-            do (when (funcall keytest key (car x))
-                 (return (if (atom (car x)) (second x) (cdar x)))))
-         (values it t)
-         (values nil nil))))
+                     #'eql))
+        (found nil))
+    (values (loop for x on alist
+               do (when (funcall keytest key (car x))
+                    (setf found t)
+                    (return (if (atom (car x)) (second x) (cdar x)))))
+            found)))
 
 ;removes found keywords from list, returning cleaned list as second val
 (defun extract-keywords (keywords alist &key in-list)
