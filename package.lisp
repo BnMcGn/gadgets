@@ -11,7 +11,8 @@
                 #:flatten
                 #:compose
                 #:curry
-                #:rcurry)
+                #:rcurry
+                #:with-gensyms)
   (:import-from #:uiop
                 #:strcat)
   (:import-from #:kebab
@@ -171,4 +172,5 @@
            :dependency-auto-watcher
            :watch-for-recompile/auto-watcher
            :print-all-values
-           :or2))
+           :or2
+           :match-various))
