@@ -446,6 +446,14 @@ body being executed with data bound to (1 2) and x bound to 3."
 (defun match-a-symbol (item symbols)
   (first-match symbols (lambda (x) (eq-symb x item))))
 
+(defun match-various (matchables)
+  "Returns a function to check if an input string - presumably input from a user - is approximately a member of the matchables list. Matchables can contain symbols, numbers or strings. Match-various will not intern the user input before comparing it to the symbols, preventing mischievous users from stuffing the symbol table."
+  (multiple-value-bind (symbols others)
+      (splitfilter matchables #'symbolp)
+    (lambda (test-string)
+      (or (match-a-symbol test-string symbols)
+          (member (string-unless-number test-string) others :test #'equal)))))
+
 (defun tree-level (tree level)
   (if (= 0 level)
       (list tree)
