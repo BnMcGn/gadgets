@@ -451,8 +451,15 @@ body being executed with data bound to (1 2) and x bound to 3."
   (multiple-value-bind (symbols others)
       (splitfilter matchables #'symbolp)
     (lambda (test-string)
-      (or (match-a-symbol test-string symbols)
-          (member (string-unless-number test-string) others :test #'equal)))))
+      (multiple-value-bind (val sig)
+          (match-a-symbol test-string symbols)
+        (if sig
+            (values val sig)
+            (let ((res (member (string-unless-number test-string)
+                               others :test #'equal)))
+              (if res
+                  (values (car res) t)
+                  (values nil nil))))))))
 
 (defun tree-level (tree level)
   (if (= 0 level)
