@@ -13,6 +13,7 @@
                (:file "anaphorics")
                (:file "gadgets" :depends-on ("anaphorics" "early" 
                                              "collecting"))
+               (:file "dubious")
                (:file "tree")
                (:file "symtools")
                (:file "recompile")))
