@@ -174,4 +174,5 @@
            :print-all-values
            :or2
            :match-various
-           :not-empty))
+           :not-empty
+           :capitalize-first))

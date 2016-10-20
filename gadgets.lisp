@@ -17,9 +17,13 @@
   (values (intern (apply #'mkstr args))))
 
 (defun capitalize-first (item)
+  "Returns a string representation of item with the first letter capitalized
+and the remaining characters lower-case, where applicable. Item can be a
+string or a symbol"
   (format nil "~@(~A~)" (mkstr item)))
 
 (defun string-unless-number (x)
+  "Return the input as a string unless it can be parsed into a number."
   (if (numberp x)
       x
       (handler-case
@@ -28,12 +32,15 @@
         #+:ccl (ccl::parse-integer-not-integer-string () x))))
 
 (defun symbol-unless-number (x)
+  "Convert the input string into a symbol unless it can be converted into a
+number."
   (let ((val (string-unless-number x)))
     (if (numberp val)
         val
         (symbolize val))))
 
 (defun not-empty (itm)
+  "A predicate to detect 0 length sequences."
   (and itm (< 0 (length itm))))
 
 (defmacro ret (var val &body body)
@@ -45,6 +52,9 @@
   `(setf (symbol-function ',var) ,func-form))
 
 (defun sequences-start-same (seq seq2)
+  "Given two sequences, are they the same until one runs out? This function
+does not care which sequence contains the other. Use sequence-starts-with if
+you need something more specific."
   (loop for x across seq2
      for y across seq
      do (when (not (eq x y))
@@ -52,6 +62,7 @@
      finally (return t)))
 
 (defun sequence-starts-with (seq testseq)
+  "Does the sequence begin with the test sequence?"
   (let ((slen (length testseq)))
     (if (< (length seq) slen)
         nil
@@ -63,6 +74,8 @@
   (subseq seq (max 0 (- (length seq) (length testseq)))))
 
 (defun assoc-cdr (&rest params)
+  "A shortcut for (cdr (assoc ...)) to give immediate access to an alist
+value."
   (cdr (apply #'assoc params)))
 
 (defun assoc-all (item alist &key (test #'eql))
@@ -164,7 +177,10 @@
             found)))
 
                                         ;removes found keywords from list, returning cleaned list as second val
-(defun extract-keywords (keywords alist &key in-list)
+(defun extract-keywords (keywords alist &key in-list (test #'eq-symb))
+  "Traverses a plist or lambda list, removing the specified keywords and the
+value that immediately follows each. Found key/value pairs are returned as a
+plist in the first value. The cleaned list is returned as the second value."
   (with-collectors (keypairs< rest<)
     (let ((currkey nil))
       (dolist (itm alist)
@@ -172,9 +188,9 @@
          (currkey
           (keypairs< (cons currkey itm))
           (setf currkey nil))
-         ((find itm keywords :test #'eq-symb)
+         ((find itm keywords :test test)
           (setf currkey it))
-         ((and in-list (consp itm) (find (car itm) keywords :test #'eq-symb))
+         ((and in-list (consp itm) (find (car itm) keywords :test test))
           (keypairs< itm))
          (t (rest< itm))))
       (when currkey
@@ -358,7 +374,7 @@ body being executed with data bound to (1 2) and x bound to 3."
 
 (defun divide-list+ (alist test)
   "Like divide-list, but includes the item that triggered test in the first
-  list."
+  list rather than the second."
   (labels ((proc (accum alist)
              (if alist
                  (if (funcall test (car alist))
@@ -678,6 +694,7 @@ trying after waiting a while"
               `(return ,value))))))
 
 (defun cat (&rest items)
+  "A short form of (concatenate 'list ...)"
   (apply #'concatenate 'list items))
 
 (defun extend-pathname (path &rest extensions)
@@ -724,7 +741,7 @@ trying after waiting a while"
 (defun try-awhile (predicate &key (sleep 0.001) (wait 1.0) on-success on-fail)
   "Will continue to call predicate until either it returns success or a given amount of time elapses. Duration can be set with the :wait keyword. It defaults to 1 second. Try-awhile will sleep between predicate calls unless the :sleep keyword is set to nil. Default sleep is 0.001 of a second.
 
-Try-awhile will return the predicate value on success or nil on failure. If a function is supplied to the :on-success argument, it will be executed if the predicate succeeds and it's result will be returned instead of the predicate result. The :on-fail keyword may be used to supply a function that will be run if the time elapses without a predicate success. It's result will be returned instead of the default nil."
+Try-awhile will return the predicate value on success or nil on failure. If a function is supplied to the :on-success argument, it will be executed if the predicate succeeds and its result will be returned instead of the predicate result. The :on-fail keyword may be used to supply a function that will be run if the time elapses without a predicate success. It's result will be returned instead of the default nil."
   (let ((wait-units (* wait internal-time-units-per-second))
         (start (get-internal-real-time))
         (result nil))
