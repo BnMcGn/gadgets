@@ -175,4 +175,5 @@
            :or2
            :match-various
            :not-empty
-           :capitalize-first))
+           :capitalize-first
+           :sequence-ends-with))

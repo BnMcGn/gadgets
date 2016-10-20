@@ -176,7 +176,6 @@ value."
                     (return (if (atom (car x)) (second x) (cdar x)))))
             found)))
 
-                                        ;removes found keywords from list, returning cleaned list as second val
 (defun extract-keywords (keywords alist &key in-list (test #'eq-symb))
   "Traverses a plist or lambda list, removing the specified keywords and the
 value that immediately follows each. Found key/value pairs are returned as a
