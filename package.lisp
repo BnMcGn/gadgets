@@ -173,4 +173,5 @@
            :watch-for-recompile/auto-watcher
            :print-all-values
            :or2
-           :match-various))
+           :match-various
+           :not-empty))

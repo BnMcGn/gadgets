@@ -16,11 +16,14 @@
 (defun symb (&rest args)
   (values (intern (apply #'mkstr args))))
 
+(defun capitalize-first (item)
+  (format nil "~@(~A~)" (mkstr item)))
+
 (defun string-unless-number (x)
   (if (numberp x)
       x
       (handler-case
-         (parse-integer x)
+          (parse-integer x)
         #+:sbcl (sb-int:simple-parse-error () x)
         #+:ccl (ccl::parse-integer-not-integer-string () x))))
 
@@ -42,11 +45,11 @@
   `(setf (symbol-function ',var) ,func-form))
 
 (defun sequences-start-same (seq seq2)
-   (loop for x across seq2
-      for y across seq
-      do (when (not (eq x y))
-     (return nil))
-      finally (return t)))
+  (loop for x across seq2
+     for y across seq
+     do (when (not (eq x y))
+          (return nil))
+     finally (return t)))
 
 (defun sequence-starts-with (seq testseq)
   (let ((slen (length testseq)))
@@ -65,8 +68,8 @@
 (defun assoc-all (item alist &key (test #'eql))
   "Gets all items associated with a key, not just the first. Returns a list"
   (loop for x in alist
-       when (funcall test (car x) item)
-       collect (cdr x)))
+     when (funcall test (car x) item)
+     collect (cdr x)))
 
 (defmacro do-alist ((key value source) &body body)
   (with-gensyms (itm)
@@ -94,16 +97,16 @@
 (defun xsubseq (sequence start end &key (type 'sequence))
   "Returns sequence with start->end chopped out of it"
   (concatenate type
-   (subseq sequence 0 start)
-   (subseq sequence (1+ end))))
+               (subseq sequence 0 start)
+               (subseq sequence (1+ end))))
 
 (defun sequence->list (seq)
   (loop for x across seq
-       collect x))
+     collect x))
 
 (defmacro multiple-value-passthru (vars value-form &body body)
   `(multiple-value-bind ,vars
-      ,value-form
+       ,value-form
      (values ,@body)))
 
 (defmacro multiple-value-apply (function values-form)
@@ -111,15 +114,15 @@
 
 (defmacro multiple-valplex (values-form &body form-with-Vn-vars)
   (let* ((maxnum
-    (loop for itm in (flatten form-with-Vn-vars)
-       maximizing (aif (ignore-errors
-             (parse-integer
-        (subseq (mkstr itm) 1)))
-           it
-           0)))
-   (symblist
-    (loop for i from 0 upto maxnum
-         collect (symb 'v i))))
+          (loop for itm in (flatten form-with-Vn-vars)
+             maximizing (aif (ignore-errors
+                               (parse-integer
+                                (subseq (mkstr itm) 1)))
+                             it
+                             0)))
+         (symblist
+          (loop for i from 0 upto maxnum
+             collect (symb 'v i))))
     `(multiple-value-bind ,symblist ,values-form
        (declare (ignorable ,@symblist))
        ,@form-with-Vn-vars)))
@@ -140,9 +143,9 @@
 (defun apply-compose (&rest functions)
   (lambda (&rest whatever)
     (labels ((func (data funcs)
-      (if funcs
-          (apply (car funcs) (func data (cdr funcs)))
-          whatever)))
+               (if funcs
+                   (apply (car funcs) (func data (cdr funcs)))
+                   whatever)))
       (func whatever functions))))
 
 (defun fetch-keyword (key alist &key (in-list t))
@@ -160,22 +163,22 @@
                     (return (if (atom (car x)) (second x) (cdar x)))))
             found)))
 
-;removes found keywords from list, returning cleaned list as second val
+                                        ;removes found keywords from list, returning cleaned list as second val
 (defun extract-keywords (keywords alist &key in-list)
   (with-collectors (keypairs< rest<)
     (let ((currkey nil))
       (dolist (itm alist)
-  (anaphora:acond
-    (currkey
-     (keypairs< (cons currkey itm))
-     (setf currkey nil))
-    ((find itm keywords :test #'eq-symb)
-     (setf currkey it))
-    ((and in-list (consp itm) (find (car itm) keywords :test #'eq-symb))
-     (keypairs< itm))
-    (t (rest< itm))))
+        (anaphora:acond
+         (currkey
+          (keypairs< (cons currkey itm))
+          (setf currkey nil))
+         ((find itm keywords :test #'eq-symb)
+          (setf currkey it))
+         ((and in-list (consp itm) (find (car itm) keywords :test #'eq-symb))
+          (keypairs< itm))
+         (t (rest< itm))))
       (when currkey
-  (keypairs< (list currkey))))))
+        (keypairs< (list currkey))))))
 
 (defmacro bind-extracted-keywords ((source remainder &rest keys) &body body)
   "Removes the keywords named in keys, with their accompanying parameters, from
@@ -190,50 +193,50 @@ body being executed with data bound to (1 2) and x bound to 3."
           ,source)
        (declare (ignorable ,remainder))
        (let ,(collecting
-               (dolist (k keys)
-                 (if (listp k)
-                     (collect (list (symb (car k))
-                                    (if (member :multiple k)
-                                        `(assoc-all ,(car k) ,extracts)
-                                        `(and (assoc ,(car k) ,extracts)
-                                              (cdr (assoc ,(car k) ,extracts))))))
-                     (collect (list (symb k)
-                                    `(and (assoc ,k ,extracts)
-                                          (cdr (assoc ,k ,extracts))))))))
+              (dolist (k keys)
+                (if (listp k)
+                    (collect (list (symb (car k))
+                                   (if (member :multiple k)
+                                       `(assoc-all ,(car k) ,extracts)
+                                       `(and (assoc ,(car k) ,extracts)
+                                             (cdr (assoc ,(car k) ,extracts))))))
+                    (collect (list (symb k)
+                                   `(and (assoc ,k ,extracts)
+                                         (cdr (assoc ,k ,extracts))))))))
          ,@body))))
 
 (defmacro autobind-specials ((vars params prefix) &body body)
   "A convenience macro to allow function parameters to override special vars. Given a series of specials named *prefix-thing*, a symbol in vars named thing and prefix set to '*prefix-, then 'thing' will be bound to the value of the keyword thing, if it is found in the params, else *prefix-thing*, that being unbound, by a default value. The default value can be specified by replacing thing in the vars list with (thing <default>), much like in a lambda list."
   (let ((vars (collecting
-          (dolist (v vars)
-      (collect (if (symbolp v) (list v nil) v)))))
-  (pbound (gensym)))
+               (dolist (v vars)
+                 (collect (if (symbolp v) (list v nil) v)))))
+        (pbound (gensym)))
     `(let ((,pbound (extract-keywords ',(mapcar #'car vars) ,params)))
        (let ,(collecting
-        (dolist (v vars)
-    (let ((specsym (symb prefix (car v) '*)))
-      (collect
-          (list (car v)
-          `(aif (assoc ',(car v) ,pbound :test #'eq-symb)
-            (cdr it)
-            (if (boundp ',specsym)
-                ,specsym
-                (second ',v))))))))
-   ,@body))))
+              (dolist (v vars)
+                (let ((specsym (symb prefix (car v) '*)))
+                  (collect
+                      (list (car v)
+                            `(aif (assoc ',(car v) ,pbound :test #'eq-symb)
+                                  (cdr it)
+                                  (if (boundp ',specsym)
+                                      ,specsym
+                                      (second ',v))))))))
+         ,@body))))
 
 (defun range (start &optional
-        (stop start stop-supplied-p)
-        (step 1))
+                      (stop start stop-supplied-p)
+                      (step 1))
   (unless stop-supplied-p (setf start 0))
   (if (> (abs (- (+ start step) stop)) (abs (- start stop)))
       nil
       (if (minusp step)
-    (loop for i from start above stop by (abs step) collect i)
-    (loop for i from start below stop by step collect i))))
+          (loop for i from start above stop by (abs step) collect i)
+          (loop for i from start below stop by step collect i))))
 
 (defmacro do-window ((var/s source
-                      &key (size 2) (step 1)
-                        start-padding) &body body)
+                            &key (size 2) (step 1)
+                            start-padding) &body body)
   (let ((size (if (listp var/s) (length var/s) size))
         (data (gensym))
         (i (gensym)))
@@ -259,8 +262,8 @@ body being executed with data bound to (1 2) and x bound to 3."
   (typecase item
     (string
      (if (member (string-trim *whitespace-characters* item)
-     '("1" "true" "yes" "t") :test #'string-equal-caseless)
-   t nil))
+                 '("1" "true" "yes" "t") :test #'string-equal-caseless)
+         t nil))
     (integer
      (if (< item 1) nil t))
     (t t)
@@ -280,11 +283,11 @@ body being executed with data bound to (1 2) and x bound to 3."
 
 (defun flatten-1 (alist)
   (collecting
-    (dolist (x alist)
-      (if (atom x)
-    (collect x)
-    (dolist (y x)
-      (collect y))))))
+   (dolist (x alist)
+     (if (atom x)
+         (collect x)
+         (dolist (y x)
+           (collect y))))))
 
 (defun flatten-when (predicate items)
   (let ((res nil))
@@ -334,10 +337,10 @@ body being executed with data bound to (1 2) and x bound to 3."
 
 (defun divide-sequence (seq test)
   (let ((ind
-   (loop for itm across seq
-      for i from 0
-      until (not (funcall test itm))
-      finally (return i))))
+         (loop for itm across seq
+            for i from 0
+            until (not (funcall test itm))
+            finally (return i))))
     (values
      (subseq seq 0 ind)
      (subseq seq ind))))
@@ -369,7 +372,7 @@ body being executed with data bound to (1 2) and x bound to 3."
 (defun remove-if-member (seq things &key key (test #'eq))
   (let ((keyfunc (or key (lambda (x) x))))
     (remove-if #'(lambda (x)
-       (member (funcall keyfunc x) things :test test)) seq)))
+                   (member (funcall keyfunc x) things :test test)) seq)))
 
 (defun splitfilter (alist test)
   (with-collectors (in< out<)
@@ -402,39 +405,39 @@ body being executed with data bound to (1 2) and x bound to 3."
   (let ((name (gensym)))
     `(block ,name
        (labels ((returner (rval) (return-from ,name rval)))
-   (macrolet ((any (test &optional (retval t))
-          `(when ,test (returner ,retval)))
-        (all (test &optional retval)
-          `(when (not ,test) (returner ,retval)))
-        (none (test &optional retval)
-          `(when ,test (returner ,retval))))
-     ,@body)))))
+         (macrolet ((any (test &optional (retval t))
+                      `(when ,test (returner ,retval)))
+                    (all (test &optional retval)
+                      `(when (not ,test) (returner ,retval)))
+                    (none (test &optional retval)
+                      `(when ,test (returner ,retval))))
+           ,@body)))))
 
-;anaphoric macro: 2nd expr wraps first (which is contained in it) if true,
-;else expr run plain.
+                                        ;anaphoric macro: 2nd expr wraps first (which is contained in it) if true,
+                                        ;else expr run plain.
 (defmacro awrap-expr-if (pred expr &body cond-expr-with-var-it)
   `(if ,pred
        (funcall
-  (lambda (it)
-    ,@cond-expr-with-var-it)
-  ,expr)
+        (lambda (it)
+          ,@cond-expr-with-var-it)
+        ,expr)
        ,expr))
 
 (defmacro aif2only (test &optional then else)
-     (let ((win (gensym)))
-       `(multiple-value-bind (it ,win) ,test
-    (if ,win ,then ,else))))
+  (let ((win (gensym)))
+    `(multiple-value-bind (it ,win) ,test
+       (if ,win ,then ,else))))
 
 (defun rotating-cache (&optional initial)
   (lambda (newval)
     (prog1
-  initial
+        initial
       (setf initial newval))))
 
 (defun tracker-same (&key initial (test #'equal))
   (lambda (thing)
     (prog1
-  (funcall test initial thing)
+        (funcall test initial thing)
       (setf initial thing))))
 
 (defun tracker-different (&key initial (test (complement #'equal)))
@@ -444,41 +447,41 @@ body being executed with data bound to (1 2) and x bound to 3."
   (with-gensyms (stream fspec)
     `(let ((,fspec ,stream-or-path))
        (cond
-   ((or (pathnamep ,fspec) (stringp ,fspec))
-    (with-open-file (,stream ,fspec)
-      (loop
-         for ,line = (read-line ,stream nil 'eof)
-         until (eq ,line 'eof)
-         do (progn ,@body))))
-   ((streamp ,fspec)
-    (loop
-       for ,line = (read-line ,fspec nil 'eof)
-       until (eq ,line 'eof)
-       do (progn ,@body)))
-   (t (error "Not a stream or path!"))))))
+         ((or (pathnamep ,fspec) (stringp ,fspec))
+          (with-open-file (,stream ,fspec)
+            (loop
+               for ,line = (read-line ,stream nil 'eof)
+               until (eq ,line 'eof)
+               do (progn ,@body))))
+         ((streamp ,fspec)
+          (loop
+             for ,line = (read-line ,fspec nil 'eof)
+             until (eq ,line 'eof)
+             do (progn ,@body)))
+         (t (error "Not a stream or path!"))))))
 
 (defun map-file-by-line (function stream-or-path)
   (collecting
-      (do-file-by-line (line stream-or-path)
-  (collect (funcall function line)))))
+   (do-file-by-line (line stream-or-path)
+     (collect (funcall function line)))))
 
 (defmacro do-list-with-rest ((head tail source) &body body)
   (once-only (source)
     `(let ((,head nil))
        (loop for ,tail on ,source
-    do (prog1
-     ,@body
-         (push (car ,tail) ,head))))))
+          do (prog1
+                 ,@body
+               (push (car ,tail) ,head))))))
 
-;Returns tlist (copy) with ind set to val. If ind is beyond the length of tlist,
-;pad out the list with padding
+                                        ;;;Returns tlist (copy) with ind set to val. If ind is beyond the length of tlist,
+                                        ;;;pad out the list with padding
 (defun list-set-place (tlist ind val padding)
   (if (<= (length tlist) ind)
       (concatenate
        'list
        tlist
        (loop for i from 1 to (- ind (length tlist))
-      collect padding)
+          collect padding)
        (cons val nil))
       (concatenate
        'list
@@ -508,13 +511,13 @@ body being executed with data bound to (1 2) and x bound to 3."
     `(lambda (,@args)
        (format t "~%Print-lambda Input:")
        (print (list ,@(remove-if (lambda (x)
-           (eq (elt (symbol-name x) 0) #\&)) args)))
+                                   (eq (elt (symbol-name x) 0) #\&)) args)))
        (format t "~%Print-lambda Output:")
        (let ((,res (multiple-value-list ,@body)))
-   (dolist (x ,res)
-     (print x))
-   (print "")
-   (apply #'values ,res)))))
+         (dolist (x ,res)
+           (print x))
+         (print "")
+         (apply #'values ,res)))))
 
 (defmacro print-cond (&rest clauses)
   (let ((count 0))
@@ -523,12 +526,12 @@ body being executed with data bound to (1 2) and x bound to 3."
           (dolist (cl clauses)
             (incf count)
             (collect `(,(car cl)
-              (preserve-other-values
-               (progn ,@(cdr cl))
-               (lambda (x)
-                 (format t "~&Print-cond: Clause ~a: Result: ~a~%"
-                         ,count x)
-                 x)))))))))
+                        (preserve-other-values
+                         (progn ,@(cdr cl))
+                         (lambda (x)
+                           (format t "~&Print-cond: Clause ~a: Result: ~a~%"
+                                   ,count x)
+                           x)))))))))
 
 (defmacro print-and (&rest forms)
   (let ((count 0)
@@ -545,6 +548,7 @@ body being executed with data bound to (1 2) and x bound to 3."
                          ,itm))))))))
 
 (defmacro print-all-values (expr)
+  "Like print, but prints - and passes on - all values received. Useful for debugging expressions that return multiple values."
   `(let ((res (multiple-value-list ,expr)))
      (mapc #'print res)
      (apply #'values res)))
@@ -552,40 +556,40 @@ body being executed with data bound to (1 2) and x bound to 3."
 (defun %setup-hash-table (data test)
   (if (listp data)
       (aand (make-hash-table :test test)
-      (progn
-        (dolist (x data)
-    (setf (gethash x it) nil))
-        it))
+            (progn
+              (dolist (x data)
+                (setf (gethash x it) nil))
+              it))
       data))
 
 (defmacro collecting-set ((&key union intersection difference (returns 'list)
-        (test '(function eql)))
-        &body body)
+                                (test '(function eql)))
+                          &body body)
   (with-gensyms (data intersection-d difference-d x)
     `(,(case returns
-       (list 'alexandria:hash-table-keys)
-       (hash-table 'identity)
-       (otherwise (error "Return type not found")))
-      (let ((,data (make-hash-table :test ,test))
-      ,@(when intersection
-        `((,intersection-d
-           (%setup-hash-table ,intersection ,test))))
-      ,@(when difference
-        `((,difference-d
-           (%setup-hash-table ,difference ,test)))))
-  (labels
-      ((collect (item)
-         ,@(when intersection
-           `((unless (nth-value 1 (gethash item ,intersection-d))
-         (return-from collect))))
-         ,@(when difference
-           `((when (nth-value 1 (gethash item ,difference-d))
-         (return-from collect))))
-         (setf (gethash item ,data) nil)))
-    (dolist (,x ,union)
-      (collect ,x))
-    ,@body
-    ,data)))))
+             (list 'alexandria:hash-table-keys)
+             (hash-table 'identity)
+             (otherwise (error "Return type not found")))
+       (let ((,data (make-hash-table :test ,test))
+             ,@(when intersection
+                     `((,intersection-d
+                        (%setup-hash-table ,intersection ,test))))
+             ,@(when difference
+                     `((,difference-d
+                        (%setup-hash-table ,difference ,test)))))
+         (labels
+             ((collect (item)
+                ,@(when intersection
+                        `((unless (nth-value 1 (gethash item ,intersection-d))
+                            (return-from collect))))
+                ,@(when difference
+                        `((when (nth-value 1 (gethash item ,difference-d))
+                            (return-from collect))))
+                (setf (gethash item ,data) nil)))
+           (dolist (,x ,union)
+             (collect ,x))
+           ,@body
+           ,data)))))
 
 (defun map-tuples (&rest funcs-and-input/inputs)
   "Like mapcar, except that multiple functions are permitted, their output - per input element - being gathered as by list*. Map-tuples can be viewed as a combination of mapcar and pairlis. All parameters are presumed to be functions except the last, which is input:
@@ -594,15 +598,15 @@ To use multiple input lists (like mapcar) insert the keyword :input between func
    (map-tuples func1 func2... :input input1 input2...)"
   (multiple-value-bind (funcs inputs)
       (multiple-value-bind (part1 part2)
-    (divide-list funcs-and-input/inputs (curry #'eq :input))
-  (if part2
-      (values part1 (cdr part2))
-      (values (butlast part1) (last part1))))
+          (divide-list funcs-and-input/inputs (curry #'eq :input))
+        (if part2
+            (values part1 (cdr part2))
+            (values (butlast part1) (last part1))))
     (apply #'mapcar
-     (lambda (&rest items)
-       (apply #'list*
-        (mapcar (lambda (func) (apply func items)) funcs)))
-     inputs)))
+           (lambda (&rest items)
+             (apply #'list*
+                    (mapcar (lambda (func) (apply func items)) funcs)))
+           inputs)))
 
 (defun maplist/step (func step list &rest more-lists)
   (labels ((proc (result lists)
@@ -631,16 +635,16 @@ To use multiple input lists (like mapcar) insert the keyword :input between func
 
 (defun use-package-with-shadowing (package &optional (target-package *package*))
   (let ((package (find-package package))
-  (target-package (find-package target-package)))
+        (target-package (find-package target-package)))
     (when (eq package target-package)
       (error "Can't import package into itself"))
     (if (member package (package-use-list target-package))
-  (print "Package already used")
-  (progn
-    (do-external-symbols (sym package)
-      (when (find-symbol (mkstr sym) target-package)
-        (shadowing-import sym target-package)))
-    (use-package package target-package)))))
+        (print "Package already used")
+        (progn
+          (do-external-symbols (sym package)
+            (when (find-symbol (mkstr sym) target-package)
+              (shadowing-import sym target-package)))
+          (use-package package target-package)))))
 
 (defmacro with-file-lock ((path &key (interval 0.1)) &body body)
   "Get an exclusive lock on a file. If lock cannot be obtained, keep
@@ -678,15 +682,15 @@ trying after waiting a while"
 
 (defun extend-pathname (path &rest extensions)
   (let ((exts 
-          (apply #'concatenate 'list
-           (mapcar (lambda (x)
-                     (if (stringp x)
-                         (list x)
-                         (let ((pd (pathname-directory x)))
-                           (unless (eq (car pd) :relative)
-                             (error "Extension must not be an absolute path"))
-                           (cdr pd))))
-                   extensions))))
+         (apply #'concatenate 'list
+                (mapcar (lambda (x)
+                          (if (stringp x)
+                              (list x)
+                              (let ((pd (pathname-directory x)))
+                                (unless (eq (car pd) :relative)
+                                  (error "Extension must not be an absolute path"))
+                                (cdr pd))))
+                        extensions))))
     (make-pathname :defaults path
                    :directory (append (pathname-directory path) exts))))
 
@@ -700,17 +704,17 @@ trying after waiting a while"
          (let ((dirname
                 (uiop:ensure-directory-pathname
                  (make-pathname :defaults tfile :type "dir"))))
-         (unless (uiop:directory-exists-p dirname)
-           (setf donep t)
-           (ensure-directories-exist dirname)
-           (unwind-protect
-                (if want-pathname-p
-                    (funcall thunk dirname)
-                    (uiop:with-current-directory (dirname)
-                      (funcall thunk)))
-             (uiop:delete-directory-tree
-              dirname
-              :validate t)))))))
+           (unless (uiop:directory-exists-p dirname)
+             (setf donep t)
+             (ensure-directories-exist dirname)
+             (unwind-protect
+                  (if want-pathname-p
+                      (funcall thunk dirname)
+                      (uiop:with-current-directory (dirname)
+                        (funcall thunk)))
+               (uiop:delete-directory-tree
+                dirname
+                :validate t)))))))
 
 (defmacro with-temporary-directory ((&key pathname) &body body)
   `(call-with-temporary-directory
@@ -718,6 +722,9 @@ trying after waiting a while"
       ,@body)))
 
 (defun try-awhile (predicate &key (sleep 0.001) (wait 1.0) on-success on-fail)
+  "Will continue to call predicate until either it returns success or a given amount of time elapses. Duration can be set with the :wait keyword. It defaults to 1 second. Try-awhile will sleep between predicate calls unless the :sleep keyword is set to nil. Default sleep is 0.001 of a second.
+
+Try-awhile will return the predicate value on success or nil on failure. If a function is supplied to the :on-success argument, it will be executed if the predicate succeeds and it's result will be returned instead of the predicate result. The :on-fail keyword may be used to supply a function that will be run if the time elapses without a predicate success. It's result will be returned instead of the default nil."
   (let ((wait-units (* wait internal-time-units-per-second))
         (start (get-internal-real-time))
         (result nil))
