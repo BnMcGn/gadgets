@@ -289,6 +289,10 @@ body being executed with data bound to (1 2) and x bound to 3."
          t nil))
     (integer
      (if (< item 1) nil t))
+    (list
+     (not-empty item))
+    (sequence
+     (not-empty item))
     (t t)
     (otherwise nil)))
 
