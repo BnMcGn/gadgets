@@ -44,11 +44,15 @@ number."
   (and itm (< 0 (length itm))))
 
 (defmacro ret (var val &body body)
+  "A single variable let that returns the variable when the body completes.
+
+(ret x 3 (incf x)) => 4"
   `(let ((,var ,val))
      ,@body
      ,var))
 
 (defmacro def-as-func (var func-form)
+  "Set a variable in the function namespace."
   `(setf (symbol-function ',var) ,func-form))
 
 (defun sequences-start-same (seq seq2)
@@ -79,7 +83,10 @@ value."
   (cdr (apply #'assoc params)))
 
 (defun assoc-all (item alist &key (test #'eql))
-  "Gets all items associated with a key, not just the first. Returns a list"
+  "Gets all items associated with a key, not just the first. Returns a list
+
+(assoc-all :a '((:a . 1) (:b . 2) (:c . 3) (:a . 4)))
+=> (1 4)"
   (loop for x in alist
      when (funcall test (car x) item)
      collect (cdr x)))
@@ -271,6 +278,7 @@ body being executed with data bound to (1 2) and x bound to 3."
   (car (last list)))
 
 (defun string-equal-caseless (a b)
+  "Are two strings equal when case is ignored?"
   (string-equal (string-upcase a) (string-upcase b)))
 
 (defun boolify (item)
