@@ -176,4 +176,9 @@
            :match-various
            :not-empty
            :capitalize-first
-           :sequence-ends-with))
+           :sequence-ends-with
+           :alist-p
+           :plist-p
+           :invert-hash-table
+           :map-assoc
+           :rekey))

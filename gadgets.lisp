@@ -91,6 +91,52 @@ value."
      when (funcall test (car x) item)
      collect (cdr x)))
 
+(defun alist-p (item)
+  "Determine if an item appears to be an assoc list"
+  (cond
+    ((null item) t)
+    ((and (listp item)
+          (every #'consp item)) t)
+    (t nil)))
+
+(defun plist-p (item)
+  "Determine if an item qualifies as a plist"
+  (cond
+    ((null item) t)
+    ((and (listp item)
+          (evenp (length item))
+          (not (alist-p item))) t)
+    (t nil)))
+
+(defun invert-hash-table (hash &key (test '#'eql))
+  (collecting-hash-table (:test test :mode :replace)
+    (do-hash-table (k v hash)
+      (collect v k))))
+
+(defun rekey (store mapping &key ignore-missing (test '#'eql))
+  (let
+      ((mapping (cond
+                  ((hash-table-p mapping) mapping)
+                  ((alist-p (alist->hash mapping)))
+                  ((plist-p (plist->hash mapping)))
+                  (t (error "Valid mapping not found!"))))
+       (results (make-hash-table :test test)))
+    (funcall
+     (cond ((hash-table-p store) #'maphash)
+           ((alist-p store) #'map-assoc)
+           ((plist-p store) #'map-by-2)
+           (t (error "Store is not mappable!")))
+     (if ignore-missing
+         (lambda (k v)
+           (when (key-in-hash? k mapping)
+             (setf (gethash (gethash k mapping) results) v)))
+         (lambda (k v)
+           (if (key-in-hash? k mapping)
+               (setf (gethash (gethash k mapping) results) v)
+               (setf (gethash k results) v))))
+     store)
+    results))
+
 (defmacro do-alist ((key value source) &body body)
   (with-gensyms (itm)
     `(dolist (,itm ,source)
@@ -655,6 +701,9 @@ To use multiple input lists (like mapcar) insert the keyword :input between func
 
 (defun mapcan-by-2 (func list)
   (apply #'concatenate 'list (map-by-2 func list)))
+
+(defun map-assoc (func alist)
+  (mapcar (lambda (x) (funcall func (car x) (cdr x))) alist))
 
 (defmacro quotef (setf-spec)
   `(setf ,setf-spec `(quote ,,setf-spec)))
