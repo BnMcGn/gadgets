@@ -5,7 +5,6 @@
 (in-package :test-gadgets)
 
 
-(plan 11)
 
 ;()
 #|
@@ -37,7 +36,7 @@
 
 
 (defun test-gadgets ()
-  (plan 21)
+  (plan 29)
 
   ;;symb
   (is 'cl-user::qwer (symb 'qw 'er))
@@ -69,5 +68,20 @@
   (is '(0 2) (range 0 4 2))
   (is '(3 2 1) (range 3 0 -1))
   (is nil (range 0 3 -1))
-  
+
+  ;;alist-p
+  (ok (alist-p nil))
+  (ok (alist-p '((:a . 1) (:b . 2))))
+  (ok (not (alist-p '(:a 1 :b 2))))
+  (ok (not (alist-p 3)))
+
+  ;;plist-p
+  (ok (plist-p nil))
+  (ok (not (plist-p '((:a . 1) (:b . 2)))))
+  (ok (plist-p '(:a 1 :b 2)))
+  (ok (not (plist-p 3)))
+
+  ;;rekey
+  (is 2 (getf (hash->plist (rekey '(:a 1 :b 2) '(:a :c :b :a))) :a))
+
   (finalize))

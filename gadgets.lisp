@@ -108,17 +108,17 @@ value."
           (not (alist-p item))) t)
     (t nil)))
 
-(defun invert-hash-table (hash &key (test '#'eql))
+(defun invert-hash-table (hash &key (test #'eql))
   (collecting-hash-table (:test test :mode :replace)
     (do-hash-table (k v hash)
       (collect v k))))
 
-(defun rekey (store mapping &key ignore-missing (test '#'eql))
+(defun rekey (store mapping &key ignore-missing (test #'eql))
   (let
       ((mapping (cond
                   ((hash-table-p mapping) mapping)
-                  ((alist-p (alist->hash mapping)))
-                  ((plist-p (plist->hash mapping)))
+                  ((alist-p mapping) (alist->hash mapping))
+                  ((plist-p mapping) (plist->hash mapping))
                   (t (error "Valid mapping not found!"))))
        (results (make-hash-table :test test)))
     (funcall
