@@ -37,7 +37,7 @@
 
 
 (defun test-gadgets ()
-  (plan 15)
+  (plan 21)
 
   ;;symb
   (is 'cl-user::qwer (symb 'qw 'er))
@@ -62,4 +62,12 @@
   (ok (not (sequence-ends-with "asdf" "sd")))
   (ok (not (sequence-ends-with "df" "asdf")))
 
+  ;;range
+  (is '(0 1 2 3) (range 4))
+  (is '(2 3) (range 2 4))
+  (is nil (range 4 2))
+  (is '(0 2) (range 0 4 2))
+  (is '(3 2 1) (range 3 0 -1))
+  (is nil (range 0 3 -1))
+  
   (finalize))

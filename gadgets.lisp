@@ -246,9 +246,8 @@ body being executed with data bound to (1 2) and x bound to 3."
                                       (second ',v))))))))
          ,@body))))
 
-(defun range (start &optional
-                      (stop start stop-supplied-p)
-                      (step 1))
+(defun range (start &optional (stop start stop-supplied-p) (step 1))
+  "Creates a list of numbers that "
   (unless stop-supplied-p (setf start 0))
   (if (> (abs (- (+ start step) stop)) (abs (- start stop)))
       nil
