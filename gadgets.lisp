@@ -75,7 +75,9 @@ you need something more specific."
             (return nil))))))
 
 (defun sequence-ends-with (seq testseq)
-  (subseq seq (max 0 (- (length seq) (length testseq)))))
+  (sequences-start-same
+   (subseq seq (max 0 (- (length seq) (length testseq))))
+   testseq))
 
 (defun assoc-cdr (&rest params)
   "A shortcut for (cdr (assoc ...)) to give immediate access to an alist
