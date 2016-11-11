@@ -36,7 +36,7 @@
 
 
 (defun test-gadgets ()
-  (plan 29)
+  (plan 31)
 
   ;;symb
   (is 'cl-user::qwer (symb 'qw 'er))
@@ -61,13 +61,8 @@
   (ok (not (sequence-ends-with "asdf" "sd")))
   (ok (not (sequence-ends-with "df" "asdf")))
 
-  ;;range
-  (is '(0 1 2 3) (range 4))
-  (is '(2 3) (range 2 4))
-  (is nil (range 4 2))
-  (is '(0 2) (range 0 4 2))
-  (is '(3 2 1) (range 3 0 -1))
-  (is nil (range 0 3 -1))
+  ;;assoc-all
+  (is '(1 4) (assoc-all :a '((:a . 1) (:b . 2) (:c . 3) (:a . 4))))
 
   ;;alist-p
   (ok (alist-p nil))
@@ -83,5 +78,14 @@
 
   ;;rekey
   (is 2 (getf (hash->plist (rekey '(:a 1 :b 2) '(:a :c :b :a))) :a))
+
+  ;;range
+  (is '(0 1 2 3) (range 4))
+  (is '(2 3) (range 2 4))
+  (is nil (range 4 2))
+  (is '(0 2) (range 0 4 2))
+  (is '(3 2 1) (range 3 0 -1))
+  (is nil (range 0 3 -1))
+
 
   (finalize))
