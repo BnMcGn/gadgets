@@ -365,7 +365,8 @@ body being executed with data bound to (1 2) and x bound to 3."
   (collecting
    (dolist (x alist)
      (if (atom x)
-         (collect x)
+         (when x
+           (collect x))
          (dolist (y x)
            (collect y))))))
 
