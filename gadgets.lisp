@@ -110,8 +110,14 @@ value."
           (not (alist-p item))) t)
     (t nil)))
 
-(defun invert-hash-table (hash &key (test #'eql))
-  (collecting-hash-table (:test test :mode :replace)
+(defun invert-hash-table (hash &key (test #'eql) (mode :replace))
+  "Returns a new hash table with keys and values swapped:
+(:a 1 :b 3 :c 5) => (1 :a 3 :b 5 :c)
+
+The hash table test can be set with :test. The method of value collection can
+be controlled with :mode. Modes are those available for
+cl-hash-util:collecting-hash-table."
+  (collecting-hash-table (:test test :mode mode)
     (do-hash-table (k v hash)
       (collect v k))))
 

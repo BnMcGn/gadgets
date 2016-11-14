@@ -76,6 +76,12 @@
   (ok (plist-p '(:a 1 :b 2)))
   (ok (not (plist-p 3)))
 
+  ;;invert-hash-table
+  (is '(1 3 5) (sort
+               (alexandria:hash-table-keys
+                (invert-hash-table (hu:plist->hash '(:a 1 :b 3 :c 5))))
+               #'<))
+
   ;;rekey
   (is 2 (getf (hash->plist (rekey '(:a 1 :b 2) '(:a :c :b :a))) :a))
 
