@@ -181,4 +181,5 @@
            :plist-p
            :invert-hash-table
            :map-assoc
-           :rekey))
+           :rekey
+           :eq-symb-multiple))

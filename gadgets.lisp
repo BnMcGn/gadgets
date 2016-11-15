@@ -386,6 +386,14 @@ body being executed with data bound to (1 2) and x bound to 3."
   (or (eq-symb-case a b)
       (equal (string-upcase (mkstr a)) (string-upcase (mkstr b)))))
 
+;;For things that send multiple items with "[]" appended to the var name.
+(defun eq-symb-multiple (a b)
+  (or (eq-symb a b)
+      (and (= (length (mkstr a)) (+ 2 (length (mkstr b))))
+           (eq-symb a (symb b '[])))
+      (and (= (+ 2 (length (mkstr a))) (length (mkstr b)))
+           (eq-symb (symb a '[]) b))))
+
 (defun match-a-symbol (item symbols)
   (first-match symbols (lambda (x) (eq-symb x item))))
 
