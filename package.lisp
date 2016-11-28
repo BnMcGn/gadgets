@@ -182,4 +182,5 @@
            :invert-hash-table
            :map-assoc
            :rekey
-           :eq-symb-multiple))
+           :eq-symb-multiple
+           :hash-table->source))

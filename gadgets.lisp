@@ -161,6 +161,11 @@ cl-hash-util:collecting-hash-table."
 (defun key-in-hash? (key hashtable)
   (nth-value 1 (gethash key hashtable)))
 
+(defun hash-table->source (ht)
+  "Returns a source code representation of a hash table."
+  `(alist->hash ',(hash->alist ht)
+                :existing (make-hash-table :test #',(hash-table-test ht))))
+
 (defun merge-plists (&rest plists)
   (let ((result (copy-list (first plists))))
     (dolist (plist (rest plists))
@@ -301,7 +306,17 @@ body being executed with data bound to (1 2) and x bound to 3."
          ,@body))))
 
 (defun range (start &optional (stop start stop-supplied-p) (step 1))
-  "Creates a list of numbers that "
+  "Creates a list containing a sequential range of integers. By default the
+range runs from 0 to one below the supplied stop value:
+(range 3) -> (0 1 2)
+If a second parameter is supplied, the first is treated as a starting value, and
+the second as a stop:
+(range 7 10) -> (7 8 9)
+The third parameter specifies a step size:
+(range 0 10 2) -> (0 2 4 6 8)
+A negative step parameter causes the range to travel down from the start to the
+stop:
+(range 10 5) -> (10 9 8 7 6)"
   (unless stop-supplied-p (setf start 0))
   (if (> (abs (- (+ start step) stop)) (abs (- start stop)))
       nil
@@ -562,8 +577,8 @@ body being executed with data bound to (1 2) and x bound to 3."
                  ,@body
                (push (car ,tail) ,head))))))
 
-                                        ;;;Returns tlist (copy) with ind set to val. If ind is beyond the length of tlist,
-                                        ;;;pad out the list with padding
+;;;Returns tlist (copy) with ind set to val. If ind is beyond the length of tlist,
+;;;pad out the list with padding
 (defun list-set-place (tlist ind val padding)
   (if (<= (length tlist) ind)
       (concatenate
