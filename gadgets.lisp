@@ -327,6 +327,7 @@ stop:
 (defmacro do-window ((var/s source
                             &key (size 2) (step 1)
                             start-padding) &body body)
+  "Iterates over a list using a settable sliding window."
   (let ((size (if (listp var/s) (length var/s) size))
         (data (gensym))
         (i (gensym)))
@@ -410,12 +411,12 @@ stop:
            (eq-symb (symb a '[]) b))))
 
 (defun match-a-symbol (item symbols)
-  (first-match symbols (lambda (x) (eq-symb x item))))
+  (first-match (lambda (x) (eq-symb x item)) symbols))
 
 (defun match-various (matchables)
   "Returns a function to check if an input string - presumably input from a user - is approximately a member of the matchables list. Matchables can contain symbols, numbers or strings. Match-various will not intern the user input before comparing it to the symbols, preventing mischievous users from stuffing the symbol table."
   (multiple-value-bind (symbols others)
-      (splitfilter matchables #'symbolp)
+      (splitfilter #'symbolp matchables)
     (lambda (test-string)
       (multiple-value-bind (val sig)
           (match-a-symbol test-string symbols)
@@ -478,10 +479,10 @@ stop:
     (remove-if #'(lambda (x)
                    (member (funcall keyfunc x) things :test test)) seq)))
 
-(defun splitfilter (alist test)
+(defun splitfilter (predicate alist)
   (with-collectors (in< out<)
     (dolist (elmt alist)
-      (if (funcall test elmt)
+      (if (funcall predicate elmt)
           (in< elmt)
           (out< elmt)))))
 
@@ -496,7 +497,7 @@ stop:
                      (nreverse (cons seq stack))))))
       (proc target-seq nil))))
 
-(defun first-match (list predicate)
+(defun first-match (predicate list)
   (multiple-value-bind (val sig)
       (dolist (x list)
         (when (funcall predicate x)
