@@ -327,7 +327,21 @@ stop:
 (defmacro do-window ((var/s source
                             &key (size 2) (step 1)
                             start-padding) &body body)
-  "Iterates over a list using a settable sliding window."
+  "Like dolist, iterates over a list, but instead of binding a single list
+item per iteration binds a segment of the list as a sliding window.
+  (do-window (x '(1 2 3 4 5 6)) ...)
+will execute the body 5 times with x bound respectively to:
+  (1 2) (2 3) (3 4) (4 5) (5 6)
+
+The step keyword adjusts how far the window slides per iteration. A destructuring spec can be provided in place of the variable. Therefore do-window
+can be used to iterate over a plist like so:
+  (do-window ((k v) '(:a 1 :b 2 :c 3) :step 2) ...)
+Each key and value will be bound to k and v, respectively.
+
+The size keyword allows adjustment of the window size.
+
+Leading padding may be provided to do-window with the start-padding
+keyword."
   (let ((size (if (listp var/s) (length var/s) size))
         (data (gensym))
         (i (gensym)))

@@ -93,5 +93,28 @@
   (is '(3 2 1) (range 3 0 -1))
   (is nil (range 0 3 -1))
 
+  ;;do-window
+  (is '(3 5 7 9 11)
+      (collecting
+        (do-window (x '(1 2 3 4 5 6))
+          (collect (apply #'+ x)))))
+  (is '(3 7 11)
+      (collecting
+        (do-window (x '(1 2 3 4 5 6) :step 2)
+          (collect (apply #'+ x)))))
+  (is '(3 7)
+       (collecting
+         (do-window (x '(1 2 3 4 5) :step 2)
+           (collect (apply #'+ x)))))
+  (is '(1 5 9)
+      (collecting
+        (do-window (x '(1 2 3 4 5) :step 2 :start-padding '(0))
+          (collect (apply #'+ x)))))
+  (is-print
+   (do-window ((a b c) '(1 2 3 4 5 6) :size 3)
+     (when (eq c 3)
+       (print (+ a b))))
+   3)
+
 
   (finalize))
