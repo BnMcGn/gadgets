@@ -118,8 +118,7 @@ The hash table test can be set with :test. The method of value collection can
 be controlled with :mode. Modes are those available for
 cl-hash-util:collecting-hash-table."
   (collecting-hash-table (:test test :mode mode)
-    (do-hash-table (k v hash)
-      (collect v k))))
+    (maphash (lambda (k v) (collect v k)) hash)))
 
 (defun rekey (store mapping &key ignore-missing (test #'eql))
   (let

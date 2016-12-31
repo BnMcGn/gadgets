@@ -36,7 +36,7 @@
 
 
 (defun test-gadgets ()
-  (plan 31)
+  (plan 37)
 
   ;;symb
   (is 'cl-user::qwer (symb 'qw 'er))
@@ -113,8 +113,8 @@
   (is-print
    (do-window ((a b c) '(1 2 3 4 5 6) :size 3)
      (when (eq c 3)
-       (print (+ a b))))
-   3)
+       (princ (+ a b))))
+   "3")
 
 
   (finalize))
