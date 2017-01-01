@@ -408,7 +408,7 @@ keyword."
       (setf src (cdr src)))
     (values (nreverse stor) src)))
 
-(defun divide-sequence (seq test)
+(defun divide-sequence (test seq)
   (let ((ind
          (loop for itm across seq
             for i from 0
@@ -418,7 +418,7 @@ keyword."
      (subseq seq 0 ind)
      (subseq seq ind))))
 
-(defun divide-list (alist test)
+(defun divide-list (test alist)
   (labels ((proc (accum alist test)
              (if alist
                  (if (funcall test (car alist))
@@ -429,7 +429,7 @@ keyword."
                  (values (nreverse accum) nil))))
     (proc nil alist test)))
 
-(defun divide-list+ (alist test)
+(defun divide-list+ (test alist)
   "Like divide-list, but includes the item that triggered test in the first
   list rather than the second."
   (labels ((proc (accum alist)
@@ -671,7 +671,7 @@ To use multiple input lists (like mapcar) insert the keyword :input between func
    (map-tuples func1 func2... :input input1 input2...)"
   (multiple-value-bind (funcs inputs)
       (multiple-value-bind (part1 part2)
-          (divide-list funcs-and-input/inputs (curry #'eq :input))
+          (divide-list (curry #'eq :input) funcs-and-input/inputs)
         (if part2
             (values part1 (cdr part2))
             (values (butlast part1) (last part1))))
