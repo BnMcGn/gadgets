@@ -6,32 +6,12 @@
 
 
 
-;()
 #|
-(ok (getf (getf *fields* :email) :viewable))
-(ok (functionp (getf (getf *fields* :email) :compiled-validator)))
-
-(initialize-user *uname* *fields*)
-
-(let ((udata (get-user-data *uname* *fields*)))
-  (is 4 (gethash '(:system :watch-level) udata))
-  (is nil (gethash '(:email) udata)))
-
-(let ((udata (get-user-visible-data *uname* *fields*)))
   (is-values (gethash '(:system :watch-level) udata) '(nil nil))
   (ok (not (gethash '(:email) udata))))
 
-(let ((indata (make-hash-table :test #'equal)))
-  (setf (gethash '(:email) indata) "asdfasdf")
   (is-error (update-from-user *uname* *fields* indata) 'simple-error)
-  (setf (gethash '(:email) indata) "asdf@asd.f")
-  (ok (update-from-user *uname* *fields* indata))
-  (setf (hu:hget/extend indata '(:system :watch-level)) 0)
-  (is-error (update-from-user *uname* *fields* indata) 'simple-error))
 
-(let ((udata (get-user-data *uname* *fields*)))
-  (is (gethash '(:email) udata) "asdf@asd.f")
-  (is 4 (gethash '(:system :watch-level) udata)))
 |#
 
 
@@ -40,6 +20,12 @@
 
   ;;symb
   (is 'cl-user::qwer (symb 'qw 'er))
+
+  ;;string-unless-number
+  ;;symbol-unless-number
+  ;;not-empty
+  ;;ret
+  ;;def-as-func
 
   ;;sequences-start-same
   (ok (sequences-start-same "asdf" "as"))
@@ -85,6 +71,17 @@
   ;;rekey
   (is 2 (getf (hash->plist (rekey '(:a 1 :b 2) '(:a :c :b :a))) :a))
 
+  ;;do-alist
+  ;;do-hash-table
+  ;;key-in-hash?
+  ;;xsubseq
+  ;;sequence->list
+  ;;multiple-value-*
+  ;;or2
+
+  ;;extract-keywords
+  ;;bind-extracted-keywords
+
   ;;range
   (is '(0 1 2 3) (range 4))
   (is '(2 3) (range 2 4))
@@ -116,5 +113,47 @@
        (princ (+ a b))))
    "3")
 
+  ;;string-equal-caseless
+  ;;boolify
+  ;;tryit
+  ;;chunk
+  ;;flatten-1
+  ;;flatten-when
+  ;;eq-symb-case
+  ;;eq-symb
+  ;;eq-symb-multiple
+  ;;match-a-symbol
+  ;;match-various
+  ;;divide-on-index
+  ;;divide-sequence
+  ;;divide-list
+  ;;divide-list+
+  ;;remove-if-member
+  ;;splitfilter
+  ;;split-sequence-on-subsequence
+  ;;first-match
+  ;;aif2only
+  ;;do-file-by-line
+  ;;map-file-by-line
+  ;;do-list-with-rest
+  ;;preserve-other-values
+  ;;pif
+  ;;print-lambda
+  ;;print-cond
+  ;;print-and
+  ;;print-all-values
+  ;;collecting-set
+  ;;map-tuples
+  ;;maplist/step
+  ;;map-by-2
+  ;;mapcan-by-2
+  ;;map-assoc
+  ;;with-file-lock
+  ;;encode-time-delta
+  ;;cat
+  ;;extend-pathname
+  ;;call-with-temporary-directory
+  ;;with-temporary-directory
+  ;;try-awhile
 
   (finalize))

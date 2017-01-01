@@ -165,13 +165,6 @@ cl-hash-util:collecting-hash-table."
   `(alist->hash ',(hash->alist ht)
                 :existing (make-hash-table :test #',(hash-table-test ht))))
 
-(defun merge-plists (&rest plists)
-  (let ((result (copy-list (first plists))))
-    (dolist (plist (rest plists))
-      (loop for (key value) on plist by #'cddr
-         do (setf (getf result key) value)))
-    result))
-
 (defun xsubseq (sequence start end &key (type 'sequence))
   "Returns sequence with start->end chopped out of it"
   (concatenate type
@@ -181,29 +174,6 @@ cl-hash-util:collecting-hash-table."
 (defun sequence->list (seq)
   (loop for x across seq
      collect x))
-
-(defmacro multiple-value-passthru (vars value-form &body body)
-  `(multiple-value-bind ,vars
-       ,value-form
-     (values ,@body)))
-
-(defmacro multiple-value-apply (function values-form)
-  `(apply ,function (multiple-value-list ,values-form)))
-
-(defmacro multiple-valplex (values-form &body form-with-Vn-vars)
-  (let* ((maxnum
-          (loop for itm in (flatten form-with-Vn-vars)
-             maximizing (aif (ignore-errors
-                               (parse-integer
-                                (subseq (mkstr itm) 1)))
-                             it
-                             0)))
-         (symblist
-          (loop for i from 0 upto maxnum
-             collect (symb 'v i))))
-    `(multiple-value-bind ,symblist ,values-form
-       (declare (ignorable ,@symblist))
-       ,@form-with-Vn-vars)))
 
 (defmacro or2 (&rest clauses)
   "A version of or that bases its decision on the second value of each clause. Forms that return no second value are considered T."
@@ -227,8 +197,10 @@ cl-hash-util:collecting-hash-table."
       (func whatever functions))))
 
 (defun fetch-keyword (key alist &key (in-list t))
-  "Find if a key is in a list, return the next item
-  after it. if checklist is true, test the first element of any sublists for the   key and if found return rest of list as parameter."
+  "Find if a key is in a list, return the next item after it. if checklist
+ is true, test the first element of any sublists for the key and if found
+return rest of list as parameter. A bit coarser in function than getf. Will
+tolerate improper plists."
   (let ((keytest (if in-list
                      (lambda (x y)
                        (or (eql x y)
@@ -244,7 +216,9 @@ cl-hash-util:collecting-hash-table."
 (defun extract-keywords (keywords alist &key in-list (test #'eq-symb))
   "Traverses a plist or lambda list, removing the specified keywords and the
 value that immediately follows each. Found key/value pairs are returned as a
-plist in the first value. The cleaned list is returned as the second value."
+plist in the first value. The cleaned list is returned as the second value.
+
+This, or the related macro bind-extracted-keywords, is particularly useful for adding features to macros. It will strip out added keywords from parameter lists, allowing the remainder to be passed to the original macro processing code."
   (with-collectors (keypairs< rest<)
     (let ((currkey nil))
       (dolist (itm alist)
@@ -283,25 +257,6 @@ body being executed with data bound to (1 2) and x bound to 3."
                     (collect (list (symb k)
                                    `(and (assoc ,k ,extracts)
                                          (cdr (assoc ,k ,extracts))))))))
-         ,@body))))
-
-(defmacro autobind-specials ((vars params prefix) &body body)
-  "A convenience macro to allow function parameters to override special vars. Given a series of specials named *prefix-thing*, a symbol in vars named thing and prefix set to '*prefix-, then 'thing' will be bound to the value of the keyword thing, if it is found in the params, else *prefix-thing*, that being unbound, by a default value. The default value can be specified by replacing thing in the vars list with (thing <default>), much like in a lambda list."
-  (let ((vars (collecting
-               (dolist (v vars)
-                 (collect (if (symbolp v) (list v nil) v)))))
-        (pbound (gensym)))
-    `(let ((,pbound (extract-keywords ',(mapcar #'car vars) ,params)))
-       (let ,(collecting
-              (dolist (v vars)
-                (let ((specsym (symb prefix (car v) '*)))
-                  (collect
-                      (list (car v)
-                            `(aif (assoc ',(car v) ,pbound :test #'eq-symb)
-                                  (cdr it)
-                                  (if (boundp ',specsym)
-                                      ,specsym
-                                      (second ',v))))))))
          ,@body))))
 
 (defun range (start &optional (stop start stop-supplied-p) (step 1))

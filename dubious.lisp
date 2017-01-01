@@ -402,8 +402,61 @@ they were given."
          (collect #'cdr))
        (collect #'car))))))))
 
-
+;;Use with-output-to-string
 (defmacro collecting-string (&body body)
   `(apply #'strcat
           (collecting ,@body)))
 
+;;1. Too specific, never used
+;;2. Collecting-hash-table might cover this
+(defun merge-plists (&rest plists)
+  (let ((result (copy-list (first plists))))
+    (dolist (plist (rest plists))
+      (loop for (key value) on plist by #'cddr
+         do (setf (getf result key) value)))
+    result))
+
+;;multiple-value-* are early macros, not thought through
+
+(defmacro multiple-value-passthru (vars value-form &body body)
+  `(multiple-value-bind ,vars
+       ,value-form
+     (values ,@body)))
+
+(defmacro multiple-value-apply (function values-form)
+  `(apply ,function (multiple-value-list ,values-form)))
+
+(defmacro multiple-valplex (values-form &body form-with-Vn-vars)
+  (let* ((maxnum
+          (loop for itm in (flatten form-with-Vn-vars)
+             maximizing (aif (ignore-errors
+                               (parse-integer
+                                (subseq (mkstr itm) 1)))
+                             it
+                             0)))
+         (symblist
+          (loop for i from 0 upto maxnum
+             collect (symb 'v i))))
+    `(multiple-value-bind ,symblist ,values-form
+       (declare (ignorable ,@symblist))
+       ,@form-with-Vn-vars)))
+
+;;Doesn't really get used
+(defmacro autobind-specials ((vars params prefix) &body body)
+  "A convenience macro to allow function parameters to override special vars. Given a series of specials named *prefix-thing*, a symbol in vars named thing and prefix set to '*prefix-, then 'thing' will be bound to the value of the keyword thing, if it is found in the params, else *prefix-thing*, that being unbound, by a default value. The default value can be specified by replacing thing in the vars list with (thing <default>), much like in a lambda list."
+  (let ((vars (collecting
+               (dolist (v vars)
+                 (collect (if (symbolp v) (list v nil) v)))))
+        (pbound (gensym)))
+    `(let ((,pbound (extract-keywords ',(mapcar #'car vars) ,params)))
+       (let ,(collecting
+              (dolist (v vars)
+                (let ((specsym (symb prefix (car v) '*)))
+                  (collect
+                      (list (car v)
+                            `(aif (assoc ',(car v) ,pbound :test #'eq-symb)
+                                  (cdr it)
+                                  (if (boundp ',specsym)
+                                      ,specsym
+                                      (second ',v))))))))
+         ,@body))))
