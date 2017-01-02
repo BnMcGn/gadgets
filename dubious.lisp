@@ -179,9 +179,9 @@ they were given."
              (multiple-value-bind
                    (this next)
                  (divide-list
-                  (cdr data)
                   (lambda (x) (or (keywordp x)
-                                  (and (consp x) (keywordp (car x))))))
+                                  (and (consp x) (keywordp (car x)))))
+                  (cdr data))
                (cons (cons (car data) (if (= 1 (length this)) (car this) this))
                      (keyword-splitter next :flatten flatten))))
             (t (error "Missing keyword")))))
