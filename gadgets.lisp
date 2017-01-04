@@ -821,3 +821,10 @@ Try-awhile will return the predicate value on success or nil on failure. If a fu
          (when sleep
            (sleep sleep)))))
 
+(defun truncate-string (str &key (length 20) (indicator "..."))
+  (let ((ln (length str)))
+    (if (> ln length)
+        (strcat
+         (subseq str 0 (- length (length indicator)))
+         indicator)
+        str)))
