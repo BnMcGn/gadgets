@@ -183,4 +183,5 @@
            :map-assoc
            :rekey
            :eq-symb-multiple
-           :hash-table->source))
+           :hash-table->source
+           :truncate-string))

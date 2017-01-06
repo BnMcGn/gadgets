@@ -16,7 +16,7 @@
 
 
 (defun test-gadgets ()
-  (plan 37)
+  (plan 51)
 
   ;;symb
   (is 'cl-user::qwer (symb 'qw 'er))
@@ -114,7 +114,23 @@
    "3")
 
   ;;string-equal-caseless
+  (is nil (string-equal-caseless "asdf" "ASDFX"))
+  (ok (string-equal-caseless "asdf" "ASDf"))
+  (ok (string-equal-caseless "123a" "123A"))
+
   ;;boolify
+  (is nil (boolify 0))
+  (is t (boolify 1))
+  (is t (boolify 5))
+  (is nil (boolify "no"))
+  (is t (boolify "yes"))
+  (is t (boolify "y"))
+  (is t (boolify "t"))
+  (is t (boolify '(1 2 3)))
+  (is t (boolify t))
+  (is t (boolify #(1 2 3)))
+  (is nil (boolify #()))
+
   ;;tryit
   ;;chunk
   ;;flatten-1

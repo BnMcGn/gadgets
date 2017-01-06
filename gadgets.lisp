@@ -319,10 +319,11 @@ keyword."
   (string-equal (string-upcase a) (string-upcase b)))
 
 (defun boolify (item)
+  "Attempts to guess when a string or number should be interpreted as T. Postive integers and strings like \"true\" and \"yes\" will be interpreted as true. Non-empty lists and sequences are true. Most other things are NIL"
   (typecase item
     (string
      (if (member (string-trim *whitespace-characters* item)
-                 '("1" "true" "yes" "t") :test #'string-equal-caseless)
+                 '("1" "true" "yes" "t" "y") :test #'string-equal-caseless)
          t nil))
     (integer
      (if (< item 1) nil t))
@@ -334,6 +335,9 @@ keyword."
     (otherwise nil)))
 
 (defmacro tryit (&body body)
+  "Execute the code in the body, returning T as the second value if the code executes without error, but returning (NIL NIL) if an exception is thrown. This provides a quick way to turn an error into a boolean value.
+
+WARNING: This isn't always a great idea for production code. Tryit will mask all raised errors, So if your code causes an error aside from the one you expect, you won't be warned of the variance."
   `(handler-case
        (values
         (progn ,@body)
