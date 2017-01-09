@@ -478,6 +478,35 @@ WARNING: This isn't always a great idea for production code. Tryit will mask all
         (values val t)
         (values nil nil))))
 
+(defun divide-tree (test tree)
+  "Divides the s-expression supplied in tree into an inner and an outer portion. The outer portion is returned in the first value as a closure. The inner portion is returned as the second value. The inner portion consists of the first part of the tree that passes test. The tree is traversed breadth-first.
+
+> (divide-tree
+    (lambda (x) (eq 'deepest (car (ensure-list x))))
+    '(deep (deeper (deeperer (deepest (deepester you-are-here))))))
+ #<CLOSURE (LAMBDA (GADGETS::X) :IN GADGETS:DIVIDE-TREE) {C19C81D}>
+ (DEEPEST (DEEPESTER YOU-ARE-HERE))
+
+> (funcall * :xyz)
+ (DEEP (DEEPER (DEEPERER :XYZ)))
+
+The returned closure should be called with a single argument. It will return the outer portion with the supplied argument in place of the inner portion."
+  (if (funcall test tree)
+      (values (lambda (x) x) tree)
+      (if (listp tree)
+          (dotimes (i (length tree) (values nil tree))
+            (let ((res (multiple-value-list
+                        (divide-tree test (nth i tree)))))
+              (when (functionp (car res))
+                (return-from divide-tree
+                  (values
+                   (lambda (x)
+                     (cat (subseq tree 0 i)
+                          (list (funcall (car res) x))
+                          (subseq tree (1+ i) (length tree))))
+                   (second res))))))
+          (values nil tree))))
+
 (defmacro with-any/all/none (&body body)
   (let ((name (gensym)))
     `(block ,name

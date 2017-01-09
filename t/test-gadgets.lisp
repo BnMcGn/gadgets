@@ -148,6 +148,20 @@
   ;;splitfilter
   ;;split-sequence-on-subsequence
   ;;first-match
+
+  ;;divide-tree
+  (multiple-value-bind (outer inner)
+      (divide-tree
+       (lambda (x) (eq 'deepest (car (alexandria:ensure-list x))))
+       '(deep (deeper (deeperer (deepest (deepester you-are-here))))))
+    (is 'deepest (car inner))
+    (is 'deep (car (funcall outer nil)))
+    (is :x (cadr (cadadr (funcall outer :x)))))
+  (multiple-value-bind (outer inner)
+      (divide-tree #'keywordp nil)
+    (is nil inner)
+    (is nil outer))
+
   ;;aif2only
   ;;do-file-by-line
   ;;map-file-by-line

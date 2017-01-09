@@ -184,4 +184,6 @@
            :rekey
            :eq-symb-multiple
            :hash-table->source
-           :truncate-string))
+           :truncate-string
+           :string-equal-caseless
+           :divide-tree))
