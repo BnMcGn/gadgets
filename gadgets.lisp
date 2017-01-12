@@ -353,8 +353,7 @@ WARNING: This isn't always a great idea for production code. Tryit will mask all
   "Flattens the top level of a list. Nils in the top level will be removed.
 
 > (flatten-1 '((1 2 3) nil (nil) ((4 5) (6 7))))
-(1 2 3 NIL (4 5) (6 7))
-"
+(1 2 3 NIL (4 5) (6 7)) "
   (collecting
    (dolist (x alist)
      (if (atom x)
@@ -372,15 +371,19 @@ WARNING: This isn't always a great idea for production code. Tryit will mask all
           (push itm res)))
     (nreverse res)))
 
-(defun eq-symb-case (a b)
-  (or (eq a b) (equal (mkstr a) (mkstr b))))
-
 (defun eq-symb (a b)
+  "A very broad symbol and string equality test. Are two entities - aside from package, keywordness, stringiness or case - equal?
+
+The naming is derived from a test of eq after passage through Paul Graham's symb utility. Note that eq-symb is case insensitive, unlike symb."
   (or (eq-symb-case a b)
       (equal (string-upcase (mkstr a)) (string-upcase (mkstr b)))))
 
-;;For things that send multiple items with "[]" appended to the var name.
+(defun eq-symb-case (a b)
+  "A case sensitive version of eq-symb."
+  (or (eq a b) (equal (mkstr a) (mkstr b))))
+
 (defun eq-symb-multiple (a b)
+  "For things that send multiple items with \"[]\" appended to the var name, a convention started by the PHP people. Mostly useful for web programming."
   (or (eq-symb a b)
       (and (= (length (mkstr a)) (+ 2 (length (mkstr b))))
            (eq-symb a (symb b '[])))
