@@ -16,7 +16,7 @@
 
 
 (defun test-gadgets ()
-  (plan 51)
+  (plan 59)
 
   ;;symb
   (is 'cl-user::qwer (symb 'qw 'er))
@@ -134,6 +134,11 @@
   ;;tryit
   ;;chunk
   ;;flatten-1
+  (let ((res (flatten-1 '((1 2 3) nil (nil) ((4 5) (6 7))))))
+    (is 1 (car res))
+    (is 6 (length res))
+    (is t (listp (fifth res))))
+
   ;;flatten-when
   ;;eq-symb-case
   ;;eq-symb

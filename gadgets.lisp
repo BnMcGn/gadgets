@@ -350,6 +350,11 @@ WARNING: This isn't always a great idea for production code. Tryit will mask all
       (list alist)))
 
 (defun flatten-1 (alist)
+  "Flattens the top level of a list. Nils in the top level will be removed.
+
+> (flatten-1 '((1 2 3) nil (nil) ((4 5) (6 7))))
+(1 2 3 NIL (4 5) (6 7))
+"
   (collecting
    (dolist (x alist)
      (if (atom x)
