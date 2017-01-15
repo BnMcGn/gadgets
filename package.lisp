@@ -186,4 +186,7 @@
            :hash-table->source
            :truncate-string
            :string-equal-caseless
-           :divide-tree))
+           :divide-tree
+           :flatten-1-when
+           :map-improper
+           :mapc-improper))

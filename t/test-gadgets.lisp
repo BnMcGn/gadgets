@@ -16,7 +16,7 @@
 
 
 (defun test-gadgets ()
-  (plan 59)
+  (plan 84)
 
   ;;symb
   (is 'cl-user::qwer (symb 'qw 'er))
@@ -134,12 +134,32 @@
   ;;tryit
   ;;chunk
   ;;flatten-1
-  (let ((res (flatten-1 '((1 2 3) nil (nil) ((4 5) (6 7))))))
+  (let ((res (flatten-1 '((1 2 3) nil (nil) ((4 5) (6 7)) (8 . 9)))))
     (is 1 (car res))
-    (is 6 (length res))
+    (is 8 (length res))
     (is t (listp (fifth res))))
 
   ;;flatten-when
+  (let* ((data '((a (:b (c))) (:b 9 (c) (:d))))
+         (res1 (flatten-when (alexandria:compose #'keywordp #'car) data))
+         (res2 (flatten-when (alexandria:compose #'keywordp #'car)
+                             data :descend-all t)))
+    (is 2 (length (car res1)))
+    (is 5 (length res1))
+    (is :d (fifth res1))
+    (is 3 (length (car res2)))
+    (is 5 (length res2))
+    (is :d (fifth res2))
+    (is :b (second (car res2))))
+
+  ;;flatten-1-when
+  (let ((res (flatten-1-when
+              (alexandria:compose #'keywordp #'car)
+              '((a (:b (c))) (:b 9 (c) (:d))))))
+    (is 5 (length res))
+    (is :b (second res))
+    (ok (listp (fifth res))))
+
   ;;eq-symb
   (ok (eq-symb "a" :a))
   (ok (eq-symb 'cl-user::x 'x))

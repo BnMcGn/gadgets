@@ -350,26 +350,41 @@ WARNING: This isn't always a great idea for production code. Tryit will mask all
       (list alist)))
 
 (defun flatten-1 (alist)
-  "Flattens the top level of a list. Nils in the top level will be removed.
+  "Flattens conses found in the top level of a list. Nils in the top level will be removed.
 
-> (flatten-1 '((1 2 3) nil (nil) ((4 5) (6 7))))
-(1 2 3 NIL (4 5) (6 7)) "
+  (flatten-1 '((1 2 3) nil (nil) ((4 5) (6 7))))
+  (1 2 3 NIL (4 5) (6 7)) "
   (collecting
    (dolist (x alist)
      (if (atom x)
          (when x
            (collect x))
-         (dolist (y x)
-           (collect y))))))
+         (mapc-improper #'collect x)))))
 
-(defun flatten-when (predicate items)
-  (let ((res nil))
+(defun flatten-when (predicate items &key descend-all)
+  (collecting
+    (mapc-improper
+     (lambda (itm)
+       (if (consp itm)
+           (if (funcall predicate itm)
+               ;;FIXME: Lower flatten-whens could be passed the toplevel
+               ;; collect func for better efficiency.
+               (mapc #'collect
+                     (flatten-when predicate itm :descend-all descend-all))
+               (if descend-all
+                   (collect (flatten-when predicate itm
+                                          :descend-all descend-all))
+                   (collect itm)))
+           (collect itm)))
+     items)))
+
+(defun flatten-1-when (predicate items)
+  "Returns a list with any conses in it flattened if predicate returns true when called with that item. Will not flatten NILs unless the predicate indicates it. The predicate will not be called on non-cons items."
+  (collecting
     (dolist (itm items)
-      (if (funcall predicate itm)
-          (dolist (subitm itm)
-            (push subitm res))
-          (push itm res)))
-    (nreverse res)))
+      (if (and (consp itm) (funcall predicate itm))
+          (mapc-improper #'collect itm)
+          (collect itm)))))
 
 (defun eq-symb (a b)
   "A very broad symbol and string equality test. Are two entities - aside from package, keywordness, stringiness or case - equal?
@@ -407,7 +422,6 @@ The naming is derived from a test of eq after passage through Paul Graham's symb
               (if res
                   (values (car res) t)
                   (values nil nil))))))))
-
 
 (defun divide-on-index (seq ind &key fail)
   "Return seq divided into two subsequences at index. If seq is shorter than ind, return seq in the first part and nil in the second."
@@ -746,6 +760,35 @@ To use multiple input lists (like mapcar) insert the keyword :input between func
 
 (defun map-assoc (func alist)
   (mapcar (lambda (x) (funcall func (car x) (cdr x))) alist))
+
+(defun map-improper (func list?)
+  "Map over a list, proper or not. The return mapping will be a proper list."
+  (let ((res nil)
+        (curr list?))
+    (loop do
+         (if (null curr)
+             (return-from map-improper (nreverse res))
+             (if (atom curr)
+                 (progn
+                   (push (funcall func curr) res)
+                   (setf curr nil))
+                 (progn
+                   (push (funcall func (car curr)) res)
+                   (setf curr (cdr curr))))))))
+
+(defun mapc-improper (func list?)
+  "Mapc over a list, proper or not. Original list is returned. Like mapc, mapc-cons is used for side effects only."
+  (let ((curr list?))
+    (loop do
+         (if (null curr)
+             (return-from mapc-improper list?)
+             (if (atom curr)
+                 (progn
+                   (funcall func curr)
+                   (setf curr nil))
+                 (progn
+                   (funcall func (car curr))
+                   (setf curr (cdr curr))))))))
 
 (defmacro quotef (setf-spec)
   `(setf ,setf-spec `(quote ,,setf-spec)))
