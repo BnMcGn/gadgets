@@ -363,20 +363,21 @@ WARNING: This isn't always a great idea for production code. Tryit will mask all
 
 (defun flatten-when (predicate items &key descend-all)
   (collecting
-    (mapc-improper
-     (lambda (itm)
-       (if (consp itm)
-           (if (funcall predicate itm)
-               ;;FIXME: Lower flatten-whens could be passed the toplevel
-               ;; collect func for better efficiency.
-               (mapc #'collect
-                     (flatten-when predicate itm :descend-all descend-all))
-               (if descend-all
-                   (collect (flatten-when predicate itm
-                                          :descend-all descend-all))
-                   (collect itm)))
-           (collect itm)))
-     items)))
+    (labels ((proc (items)
+               (mapc-improper
+                (lambda (itm)
+                  (if (consp itm)
+                      (if (funcall predicate itm)
+                          (proc itm)
+                          (if descend-all
+                              (collect
+                                  (flatten-when
+                                   predicate itm
+                                   :descend-all descend-all))
+                              (collect itm)))
+                      (collect itm)))
+                items)))
+      (proc items))))
 
 (defun flatten-1-when (predicate items)
   "Returns a list with any conses in it flattened if predicate returns true when called with that item. Will not flatten NILs unless the predicate indicates it. The predicate will not be called on non-cons items."
