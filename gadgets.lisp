@@ -334,6 +334,7 @@ keyword."
     (t t)
     (otherwise nil)))
 
+;;Consider ignore-errors
 (defmacro tryit (&body body)
   "Execute the code in the body, returning T as the second value if the code executes without error, but returning (NIL NIL) if an exception is thrown. This provides a quick way to turn an error into a boolean value.
 
@@ -362,6 +363,7 @@ WARNING: This isn't always a great idea for production code. Tryit will mask all
          (mapc-improper #'collect x)))))
 
 (defun flatten-when (predicate items &key descend-all)
+  "Recursively flattens any conses found in items if the predicate returns true on them. Will not flatten NILs unless the predicate indicates it. The predicate will not be called on non-cons items. Flatten-when will not normally descend into lists which it will not flatten, stopping at any list or cons item that fails the predicate. To cause it to descend into non-matching portions of the tree, set the :descend-all keyword."
   (collecting
     (labels ((proc (items)
                (mapc-improper
