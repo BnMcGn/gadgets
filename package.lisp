@@ -189,4 +189,7 @@
            :divide-tree
            :flatten-1-when
            :map-improper
-           :mapc-improper))
+           :mapc-improper
+           :to-lowercase
+           :to-uppercase
+           :ordered-unique))

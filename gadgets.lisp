@@ -22,6 +22,12 @@ and the remaining characters lower-case, where applicable. Item can be a
 string or a symbol"
   (format nil "~@(~A~)" (mkstr item)))
 
+(defun to-lowercase (item)
+  (format nil "~(~a~)" (mkstr item)))
+
+(defun to-uppercase (item)
+  (format nil "~:@(~a~)" (mkstr item)))
+
 (defun string-unless-number (x)
   "Return the input as a string unless it can be parsed into a number."
   (if (numberp x)
@@ -502,6 +508,23 @@ The naming is derived from a test of eq after passage through Paul Graham's symb
     (if sig
         (values val t)
         (values nil nil))))
+
+(defun ordered-unique (list &key (test #'eql))
+  "Returns a unique list of the items in list in the order in which they first
+appear."
+  (let* ((max 0)
+         (data (hu:collecting-hash-table (:mode :keep :test test)
+                 (loop
+                    for itm in list
+                    for i from 0
+                    do (hu:collect itm i)
+                    finally (setf max i))))
+         (data (invert-hash-table data :test #'eq))
+         (res nil))
+    (dotimes (i (1+ max))
+      (alexandria:when-let ((val (gethash i data)))
+        (push val res)))
+    (nreverse res)))
 
 (defun divide-tree (test tree)
   "Divides the s-expression supplied in tree into an inner and an outer portion. The outer portion is returned in the first value as a closure. The inner portion is returned as the second value. The inner portion consists of the first part of the tree that passes test. The tree is traversed breadth-first.
