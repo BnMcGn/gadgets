@@ -192,4 +192,6 @@
            :mapc-improper
            :to-lowercase
            :to-uppercase
-           :ordered-unique))
+           :ordered-unique
+           :dump
+           :dive))

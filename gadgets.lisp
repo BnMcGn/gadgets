@@ -707,6 +707,14 @@ The returned closure should be called with a single argument. It will return the
      (mapc #'print res)
      (apply #'values res)))
 
+(defparameter *dump-stor* nil)
+
+(defun dump (&rest things)
+  (setf *dump-stor* things))
+
+(defun dive ()
+  *dump-stor*)
+
 (defun %setup-hash-table (data test)
   (if (listp data)
       (aand (make-hash-table :test test)
