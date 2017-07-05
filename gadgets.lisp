@@ -47,7 +47,7 @@ number."
 
 (defun not-empty (itm)
   "A predicate to detect 0 length sequences."
-  (and itm (< 0 (length itm))))
+  (and itm (< 0 (length itm)) itm)) ;Return item if it isn't empty.
 
 (defmacro ret (var val &body body)
   "A single variable let that returns the variable when the body completes.
@@ -442,6 +442,32 @@ The naming is derived from a test of eq after passage through Paul Graham's symb
       (push (car src) stor)
       (setf src (cdr src)))
     (values (nreverse stor) src)))
+
+(defgeneric divide-on-true (test list/seq &key fail)
+  (:documentation
+   "Divides a list or sequence into two parts, with the second part starting with the first item to cause test to return true. The two parts of the sequence are returned as values. If a dividing point is not found, divide-on-true will return the whole sequence as the first value. If you wish it to raise an error instead, set the :fail parameter to true.")
+  (:method ((test function) (list/seq sequence) &key fail)
+    (loop
+       for itm across list/seq
+       for i from 0
+       do (when (funcall test itm)
+            (return
+              (values (subseq list/seq 0 i)
+                      (subseq list/seq i))))
+       finally (if fail
+                   (error "No dividing point found in sequence")
+                   (subseq list/seq i))))
+  (:method ((test function) (list/seq list) &key fail)
+    (labels ((proc (accum alist)
+               (if alist
+                   (if (funcall test (car alist))
+                       (values (nreverse accum) alist)
+                       (proc (cons (car alist) accum)
+                             (cdr alist)))
+                   (if fail
+                       (error "No dividing point found in list")
+                       (nreverse accum)))))
+      (proc nil list/seq))))
 
 (defun divide-sequence (test seq)
   (let ((ind
