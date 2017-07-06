@@ -194,4 +194,5 @@
            :to-uppercase
            :ordered-unique
            :dump
-           :dive))
+           :dive
+           :divide-on-true))

@@ -334,9 +334,9 @@ keyword."
     (integer
      (if (< item 1) nil t))
     (list
-     (not-empty item))
+     (and (not-empty item) t))
     (sequence
-     (not-empty item))
+     (and (not-empty item) t))
     (t t)
     (otherwise nil)))
 
@@ -432,42 +432,71 @@ The naming is derived from a test of eq after passage through Paul Graham's symb
                   (values (car res) t)
                   (values nil nil))))))))
 
-(defun divide-on-index (seq ind &key fail)
-  "Return seq divided into two subsequences at index. If seq is shorter than ind, return seq in the first part and nil in the second."
-  (let (stor
-        (src seq))
-    (dotimes (i ind)
-      (unless src
-        (if fail (return-from divide-on-index nil) (return)))
-      (push (car src) stor)
-      (setf src (cdr src)))
-    (values (nreverse stor) src)))
+(defun divide-on-index (list/seq index &key fail)
+  (let ((i index))
+    (divide-after-true
+     (lambda (x)
+       (declare (ignore x))
+       (when (= 0 (decf i))
+         t))
+     list/seq :fail fail)))
 
 (defgeneric divide-on-true (test list/seq &key fail)
   (:documentation
-   "Divides a list or sequence into two parts, with the second part starting with the first item to cause test to return true. The two parts of the sequence are returned as values. If a dividing point is not found, divide-on-true will return the whole sequence as the first value. If you wish it to raise an error instead, set the :fail parameter to true.")
-  (:method ((test function) (list/seq sequence) &key fail)
-    (loop
-       for itm across list/seq
-       for i from 0
-       do (when (funcall test itm)
-            (return
-              (values (subseq list/seq 0 i)
-                      (subseq list/seq i))))
-       finally (if fail
-                   (error "No dividing point found in sequence")
-                   (subseq list/seq i))))
-  (:method ((test function) (list/seq list) &key fail)
-    (labels ((proc (accum alist)
-               (if alist
-                   (if (funcall test (car alist))
-                       (values (nreverse accum) alist)
-                       (proc (cons (car alist) accum)
-                             (cdr alist)))
-                   (if fail
-                       (error "No dividing point found in list")
-                       (nreverse accum)))))
-      (proc nil list/seq))))
+   "Divides a list or sequence into two parts, with the second part starting with the first item to cause test to return true. The two parts of the sequence are returned as values. If a dividing point is not found, divide-on-true will return the whole sequence as the first value. If you wish it to raise an error instead, set the :fail parameter to true."))
+
+(defmethod divide-on-true ((test function) (list/seq sequence) &key fail)
+  (loop
+     for itm across list/seq
+     for i from 0
+     do (when (funcall test itm)
+          (return
+            (values (subseq list/seq 0 i)
+                    (subseq list/seq i))))
+     finally (if fail
+                 (error "No dividing point found in sequence")
+                 (subseq list/seq i))))
+
+(defmethod divide-on-true ((test function) (list/seq list) &key fail)
+  (labels ((proc (accum alist)
+             (if alist
+                 (if (funcall test (car alist))
+                     (values (nreverse accum) alist)
+                     (proc (cons (car alist) accum)
+                           (cdr alist)))
+                 (if fail
+                     (error "No dividing point found in list")
+                     (nreverse accum)))))
+    (proc nil list/seq)))
+
+(defgeneric divide-after-true (test list/seq &key fail)
+  (:documentation
+   "Like divide-on-true, but includes the first matching item in the first list."))
+
+(defmethod divide-after-true ((test function) (list/seq sequence) &key fail)
+  (loop
+     for itm across list/seq
+     for i from 0
+     do (when (funcall test itm)
+          (return
+            (values (subseq list/seq 0 (1+ i))
+                    (subseq list/seq (1+ i)))))
+     finally (if fail
+                 (error "No dividing point found in sequence")
+                 (subseq list/seq i))))
+
+(defmethod divide-after-true ((test function) (list/seq list) &key fail)
+  (labels ((proc (accum alist)
+             (if alist
+                 (if (funcall test (car alist))
+                     (values (nreverse (cons (car alist) accum))
+                             (cdr alist))
+                     (proc (cons (car alist) accum)
+                           (cdr alist)))
+                 (if fail
+                     (error "No dividing point found in list")
+                     (nreverse accum)))))
+    (proc nil list/seq)))
 
 (defun divide-sequence (test seq)
   (let ((ind
@@ -786,7 +815,7 @@ To use multiple input lists (like mapcar) insert the keyword :input between func
    (map-tuples func1 func2... :input input1 input2...)"
   (multiple-value-bind (funcs inputs)
       (multiple-value-bind (part1 part2)
-          (divide-list (curry #'eq :input) funcs-and-input/inputs)
+          (divide-on-true (curry #'eq :input) funcs-and-input/inputs)
         (if part2
             (values part1 (cdr part2))
             (values (butlast part1) (last part1))))
@@ -801,10 +830,14 @@ To use multiple input lists (like mapcar) insert the keyword :input between func
              (multiple-value-bind (curr rest)
                  (with-collectors (curr< rest<)
                    (dolist (list lists)
+                     (unless list
+                       (return-from proc (nreverse result)))
                      (multiple-value-bind (curr rest)
-                         (divide-on-index list step :fail t)
-                       (unless curr
-                         (return-from proc (nreverse result)))
+                         (handler-case
+                             (divide-on-index list step :fail t)
+                           (simple-error (e) (declare (ignore e))
+                               (error
+                                "Length of input lists was not divisible by step.")))
                        (curr< curr)
                        (rest< rest))))
                (proc (cons (apply func curr) result) rest))))

@@ -184,9 +184,8 @@
   ;;match-a-symbol
   ;;match-various
   ;;divide-on-index
-  ;;divide-sequence
-  ;;divide-list
-  ;;divide-list+
+  ;;divide-on-true
+  ;;divide-after-true
   ;;remove-if-member
   ;;splitfilter
   ;;split-sequence-on-subsequence
