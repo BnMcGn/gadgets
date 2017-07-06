@@ -178,7 +178,7 @@ they were given."
             ((keywordp (car data))
              (multiple-value-bind
                    (this next)
-                 (divide-list
+                 (divide-on-true
                   (lambda (x) (or (keywordp x)
                                   (and (consp x) (keywordp (car x)))))
                   (cdr data))

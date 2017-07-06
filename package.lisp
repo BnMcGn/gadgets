@@ -64,8 +64,6 @@
            :eq-symb-case
            :tree-level
            :divide-on-index
-           :divide-sequence
-           :divide-list
            :remove-if-member
            :splitfilter
            :keyword-splitter
@@ -156,7 +154,6 @@
            :extend-pathname
            :flatten-when
            :print-and
-           :divide-list+
            :sequences-start-same
            :split-sequence-on-subseq
            :mapcan-by-2
@@ -195,4 +192,5 @@
            :ordered-unique
            :dump
            :dive
-           :divide-on-true))
+           :divide-on-true
+           :divide-after-true))

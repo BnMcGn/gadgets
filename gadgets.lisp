@@ -498,40 +498,6 @@ The naming is derived from a test of eq after passage through Paul Graham's symb
                      (nreverse accum)))))
     (proc nil list/seq)))
 
-(defun divide-sequence (test seq)
-  (let ((ind
-         (loop for itm across seq
-            for i from 0
-            until (not (funcall test itm))
-            finally (return i))))
-    (values
-     (subseq seq 0 ind)
-     (subseq seq ind))))
-
-(defun divide-list (test alist)
-  (labels ((proc (accum alist test)
-             (if alist
-                 (if (funcall test (car alist))
-                     (values (nreverse accum) alist)
-                     (proc (cons (car alist) accum)
-                           (cdr alist)
-                           test))
-                 (values (nreverse accum) nil))))
-    (proc nil alist test)))
-
-(defun divide-list+ (test alist)
-  "Like divide-list, but includes the item that triggered test in the first
-  list rather than the second."
-  (labels ((proc (accum alist)
-             (if alist
-                 (if (funcall test (car alist))
-                     (values (nreverse (cons (car alist) accum))
-                             (cdr alist))
-                     (proc (cons (car alist) accum)
-                           (cdr alist)))
-                 (values (nreverse accum) nil))))
-    (proc nil alist)))
-
 (defun remove-if-member (seq things &key key (test #'eq))
   (let ((keyfunc (or key (lambda (x) x))))
     (remove-if #'(lambda (x)
