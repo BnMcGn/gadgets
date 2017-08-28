@@ -99,6 +99,17 @@ value."
      when (funcall test (car x) item)
      collect (cdr x)))
 
+(defun assoc-or (keys alist)
+  "Finds the first key in keys that has a match in alist. Will use equal to match
+strings."
+  (when keys
+    (alexandria:if-let ((res (assoc (car keys) alist
+                                    :test (if (stringp (car keys))
+                                              #'equal
+                                              #'eql))))
+      res
+      (assoc-or (cdr keys) alist))))
+
 (defun alist-p (item)
   "Determine if an item appears to be an assoc list"
   (cond
@@ -716,11 +727,12 @@ The returned closure should be called with a single argument. It will return the
          (dolist (f forms)
            (incf count)
            (collect
-               `(let ((,itm ,f))
+               `(let ((,itm (multiple-value-list ,f)))
                   (progn (if ,itm
-                             (format t "~&Print-and: Clause ~a: ~a~%" ,count ,itm)
+                             (format t "~&Print-and: Clause ~a: values:~a~%"
+                                     ,count ,itm)
                              (format t "~&Print-and: FAILED at ~a~%" ,count))
-                         ,itm))))))))
+                         (apply #'values ,itm)))))))))
 
 (defmacro print-all-values (expr)
   "Like print, but prints - and passes on - all values received. Useful for debugging expressions that return multiple values."
@@ -731,7 +743,8 @@ The returned closure should be called with a single argument. It will return the
 (defparameter *dump-stor* nil)
 
 (defun dump (&rest things)
-  (setf *dump-stor* things))
+  (setf *dump-stor* things)
+  (car things))
 
 (defun dive ()
   *dump-stor*)
@@ -901,7 +914,7 @@ trying after waiting a while"
   (apply #'concatenate 'list items))
 
 (defun extend-pathname (path &rest extensions)
-  (let ((exts 
+  (let ((exts
          (apply #'concatenate 'list
                 (mapcar (lambda (x)
                           (if (stringp x)
@@ -971,3 +984,11 @@ Try-awhile will return the predicate value on success or nil on failure. If a fu
          (subseq str 0 (- length (length indicator)))
          indicator)
         str)))
+
+(defun relative-to-range (start end num)
+  "Returns a value indicating where num is positioned relative to start and end. If num lies between start and end, the return value will be between 0.0 and 1.0."
+  (/ (- num start) (- end start)))
+
+(defun as-in-range (start end num)
+  "Complement of relative-of-range function. Treats num as if it were a fraction of the range specified by start and end. Returns the absolute number that results."
+  (+ start (* num (- end start))))

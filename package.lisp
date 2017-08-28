@@ -193,4 +193,7 @@
            :dump
            :dive
            :divide-on-true
-           :divide-after-true))
+           :divide-after-true
+           :assoc-or
+           :as-in-range
+           :relative-to-range))
