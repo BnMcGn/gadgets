@@ -406,6 +406,13 @@ WARNING: This isn't always a great idea for production code. Tryit will mask all
           (mapc-improper #'collect itm)
           (collect itm)))))
 
+(defmacro three-way (test minus-clause zero-clause plus-clause)
+  (let ((val (gensym)))
+    `(let ((,val ,test))
+       (cond ((> 0 ,val) ,minus-clause)
+             ((equal 0 ,val) ,zero-clause)
+             (t ,plus-clause)))))
+
 (defun eq-symb (a b)
   "A very broad symbol and string equality test. Are two entities - aside from package, keywordness, stringiness or case - equal?
 
