@@ -454,7 +454,8 @@ they were given."
                 (let ((specsym (symb prefix (car v) '*)))
                   (collect
                       (list (car v)
-                            `(aif (assoc ',(car v) ,pbound :test #'eq-symb)
+                            `(aif (assoc ',(car v) ,pbound
+                                         :test #'string-equal)
                                   (cdr it)
                                   (if (boundp ',specsym)
                                       ,specsym

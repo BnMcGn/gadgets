@@ -230,7 +230,7 @@ tolerate improper plists."
                     (return (if (atom (car x)) (second x) (cdar x)))))
             found)))
 
-(defun extract-keywords (keywords alist &key in-list (test #'eq-symb))
+(defun extract-keywords (keywords alist &key in-list (test #'string-equal))
   "Traverses a plist or lambda list, removing the specified keywords and the
 value that immediately follows each. Found key/value pairs are returned as a
 plist in the first value. The cleaned list is returned as the second value.
@@ -413,27 +413,20 @@ WARNING: This isn't always a great idea for production code. Tryit will mask all
              ((equal 0 ,val) ,zero-clause)
              (t ,plus-clause)))))
 
-(defun eq-symb (a b)
-  "A very broad symbol and string equality test. Are two entities - aside from package, keywordness, stringiness or case - equal?
-
-The naming is derived from a test of eq after passage through Paul Graham's symb utility. Note that eq-symb is case insensitive, unlike symb."
-  (or (eq-symb-case a b)
-      (equal (string-upcase (mkstr a)) (string-upcase (mkstr b)))))
-
-(defun eq-symb-case (a b)
-  "A case sensitive version of eq-symb."
+(defun string-equal-case (a b)
+  "A case sensitive version of string-equal."
   (or (eq a b) (equal (mkstr a) (mkstr b))))
 
-(defun eq-symb-multiple (a b)
+(defun string-equal-multiple (a b)
   "For things that send multiple items with \"[]\" appended to the var name, a convention started by the PHP people. Mostly useful for web programming."
-  (or (eq-symb a b)
+  (or (string-equal a b)
       (and (= (length (mkstr a)) (+ 2 (length (mkstr b))))
-           (eq-symb a (symb b '[])))
+           (string-equal a (symb b '[])))
       (and (= (+ 2 (length (mkstr a))) (length (mkstr b)))
-           (eq-symb (symb a '[]) b))))
+           (string-equal (symb a '[]) b))))
 
 (defun match-a-symbol (item symbols)
-  (first-match (lambda (x) (eq-symb x item)) symbols))
+  (first-match (lambda (x) (string-equal x item)) symbols))
 
 (defun match-various (matchables)
   "Returns a function to check if an input string - presumably input from a user - is approximately a member of the matchables list. Matchables can contain symbols, numbers or strings. Match-various will not intern the user input before comparing it to the symbols, preventing mischievous users from stuffing the symbol table."

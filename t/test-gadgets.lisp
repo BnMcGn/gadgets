@@ -160,26 +160,17 @@
     (is :b (second res))
     (ok (listp (fifth res))))
 
-  ;;eq-symb
-  (ok (eq-symb "a" :a))
-  (ok (eq-symb 'cl-user::x 'x))
-  (ok (eq-symb 'a "A"))
-  (ok (eq-symb "1" 1))
-  (ok (eq-symb '|asdf| "ASDF"))
-  (is nil (eq-symb "a" 'b))
-  (is nil (eq-symb '- '_))
+  ;;string-equal-case
+  (ok (string-equal-case "a" :|a|))
+  (is nil (string-equal-case "a" :a))
+  (is nil (string-equal-case 'a 'b))
+  (ok (string-equal-case 'cl-user::x 'x))
+  (is nil (string-equal-case '|asdf| "ASDF"))
 
-  ;;eq-symb-case
-  (ok (eq-symb-case "a" :|a|))
-  (is nil (eq-symb-case "a" :a))
-  (is nil (eq-symb-case 'a 'b))
-  (ok (eq-symb-case 'cl-user::x 'x))
-  (is nil (eq-symb-case '|asdf| "ASDF"))
-
-  ;;eq-symb-multiple
-  (ok (eq-symb-multiple :a "a[]"))
-  (ok (eq-symb-multiple :a "A"))
-  (is nil (eq-symb-multiple "a()" "a[]"))
+  ;;string-equal-multiple
+  (ok (string-equal-multiple :a "a[]"))
+  (ok (string-equal-multiple :a "A"))
+  (is nil (string-equal-multiple "a()" "a[]"))
 
   ;;match-a-symbol
   ;;match-various

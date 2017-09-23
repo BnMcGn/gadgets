@@ -60,8 +60,7 @@
            :trycar
            :chunk
            :flatten-1
-           :eq-symb
-           :eq-symb-case
+           :string-equal-case
            :tree-level
            :divide-on-index
            :remove-if-member
@@ -179,7 +178,7 @@
            :invert-hash-table
            :map-assoc
            :rekey
-           :eq-symb-multiple
+           :string-equal-multiple
            :hash-table->source
            :truncate-string
            :string-equal-caseless
