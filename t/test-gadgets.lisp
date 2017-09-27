@@ -22,6 +22,10 @@
   (is 'cl-user::qwer (symb 'qw 'er))
 
   ;;string-unless-number
+  (is "asdf" (string-unless-number "asdf"))
+  (is 1 (string-unless-number "1"))
+  (is "1.0" (string-unless-number "1.0"))
+
   ;;symbol-unless-number
   ;;not-empty
   ;;ret

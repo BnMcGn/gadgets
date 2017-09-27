@@ -29,7 +29,7 @@ string or a symbol"
   (format nil "~:@(~a~)" (mkstr item)))
 
 (defun string-unless-number (x)
-  "Return the input as a string unless it can be parsed into a number."
+  "Return the input as a string unless it can be recognized as an integer."
   (if (numberp x)
       x
       (handler-case
