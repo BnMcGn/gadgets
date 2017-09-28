@@ -196,4 +196,5 @@
            :assoc-or
            :as-in-range
            :relative-to-range
-           :three-way))
+           :three-way
+           :string-equal*))

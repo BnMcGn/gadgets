@@ -230,7 +230,7 @@ tolerate improper plists."
                     (return (if (atom (car x)) (second x) (cdar x)))))
             found)))
 
-(defun extract-keywords (keywords alist &key in-list (test #'string-equal))
+(defun extract-keywords (keywords alist &key in-list (test #'string-equal*))
   "Traverses a plist or lambda list, removing the specified keywords and the
 value that immediately follows each. Found key/value pairs are returned as a
 plist in the first value. The cleaned list is returned as the second value.
@@ -330,6 +330,12 @@ keyword."
 
 (defun last-car (list)
   (car (last list)))
+
+(defun string-equal* (a b)
+  "Broad version of string equal. Will take input that is not a string or symbol."
+  (and
+   (or (stringp a) (symbolp a)) (or (stringp b) (symbolp b))
+   (string-equal a b)))
 
 (defun string-equal-caseless (a b)
   "Are two strings equal when case is ignored?"
