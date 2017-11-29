@@ -197,4 +197,5 @@
            :as-in-range
            :relative-to-range
            :three-way
-           :string-equal*))
+           :string-equal*
+           :quoted-symbol-p))
