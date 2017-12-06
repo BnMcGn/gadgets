@@ -871,9 +871,17 @@ To use multiple input lists (like mapcar) insert the keyword :input between func
 (defmacro quotef (setf-spec)
   `(setf ,setf-spec `(quote ,,setf-spec)))
 
+(defun quoted-p (item)
+  "Macro utility to test if an item has been quoted by the macro user."
+  (and (consp item) (eq 'quote (car item))))
+
 (defun quoted-symbol-p (item)
   "Macro utility to test if an item has been passed into a macro as a quoted symbol. If so, returns the symbol without the quote."
-  (and (consp item) (eq 'quote (car item)) (symbolp (second item)) (second item)))
+  (and (quoted-p item) (symbolp (second item)) (second item)))
+
+(defun quoted-list-p (item)
+  "Utility to test if a macro parameter is a quoted list. Returns the list if it is."
+  (and (quoted-p item) (listp (second item)) (second item)))
 
 (defun use-package-with-shadowing (package &optional (target-package *package*))
   (let ((package (find-package package))

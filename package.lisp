@@ -198,4 +198,6 @@
            :relative-to-range
            :three-way
            :string-equal*
-           :quoted-symbol-p))
+           :quoted-symbol-p
+           :quoted-p
+           :quoted-list-p))
