@@ -200,4 +200,5 @@
            :string-equal*
            :quoted-symbol-p
            :quoted-p
-           :quoted-list-p))
+           :quoted-list-p
+           :string-join))

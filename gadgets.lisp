@@ -85,6 +85,9 @@ you need something more specific."
    (subseq seq (max 0 (- (length seq) (length testseq))))
    testseq))
 
+(defun string-join (filler strings)
+  (format nil (format nil "~~{~~a~~^~a~~}" filler) strings))
+
 (defun assoc-cdr (&rest params)
   "A shortcut for (cdr (assoc ...)) to give immediate access to an alist
 value."
