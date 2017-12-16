@@ -201,4 +201,5 @@
            :quoted-symbol-p
            :quoted-p
            :quoted-list-p
-           :string-join))
+           :string-join
+           :sequence->list))

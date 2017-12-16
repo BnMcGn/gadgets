@@ -530,16 +530,19 @@ WARNING: This isn't always a great idea for production code. Tryit will mask all
           (in< elmt)
           (out< elmt)))))
 
-(defun split-sequence-on-subseq (search-seq target-seq)
-  (let ((len (length search-seq)))
-    (labels ((proc (seq stack)
-               (let ((pos (search search-seq seq)))
-                 (if pos
-                     (proc (subseq seq (+ pos len))
-                           (cons (subseq seq 0 pos)
-                                 stack))
-                     (nreverse (cons seq stack))))))
-      (proc target-seq nil))))
+(defun split-sequence-on-subseq (subseq/s sequence)
+  (let ((searches
+         (hu:alist->hash
+          (mapcar (lambda (x) (cons (if (characterp x) x (elt x 0)) x))
+                  (alexandria:ensure-list subseq/s))
+          :mode :append)))
+    (dotimes (i (length sequence))
+      (dolist (poss (gethash (elt sequence i) searches))
+        (when (sequence-starts-with (subseq sequence i) poss)
+          (return-from split-sequence-on-subseq
+            (values (list (subseq sequence 0 i) (subseq sequence (+ i (length poss))))
+                    poss)))))
+    sequence))
 
 (defun first-match (predicate list)
   (multiple-value-bind (val sig)
