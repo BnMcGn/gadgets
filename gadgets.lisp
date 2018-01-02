@@ -435,7 +435,7 @@ WARNING: This isn't always a great idea for production code. Tryit will mask all
            (string-equal (symb a '[]) b))))
 
 (defun match-a-symbol (item symbols)
-  (first-match (lambda (x) (string-equal x item)) symbols))
+  (find-if (lambda (x) (string-equal x item)) symbols))
 
 (defun match-various (matchables)
   "Returns a function to check if an input string - presumably input from a user - is approximately a member of the matchables list. Matchables can contain symbols, numbers or strings. Match-various will not intern the user input before comparing it to the symbols, preventing mischievous users from stuffing the symbol table."
@@ -542,7 +542,7 @@ WARNING: This isn't always a great idea for production code. Tryit will mask all
           (return-from split-sequence-on-subseq
             (values (list (subseq sequence 0 i) (subseq sequence (+ i (length poss))))
                     poss)))))
-    sequence))
+    (list sequence)))
 
 (defun first-match (predicate list)
   (multiple-value-bind (val sig)
