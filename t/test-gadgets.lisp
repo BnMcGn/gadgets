@@ -179,6 +179,11 @@
   ;;match-a-symbol
   ;;match-various
   ;;divide-on-index
+  (is '(4 5 6) (nth-value 1 (divide-on-index '(1 2 3 4 5 6) 3)))
+  (is nil (nth-value 1 (divide-on-index '(1 2 3 4 5 6) 6)))
+  (is nil (nth-value 1 (divide-on-index '(1 2 3 4 5 6) 7)))
+  (is-error (nth-value 1 (divide-on-index '(1 2 3 4 5 6) 7 :fail t)) 'simple-error)
+
   ;;divide-on-true
   ;;divide-after-true
   ;;remove-if-member
