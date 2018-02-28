@@ -16,7 +16,7 @@
 
 
 (defun test-gadgets ()
-  (plan 84)
+  (plan 90)
 
   ;;symb
   (is 'cl-user::qwer (symb 'qw 'er))
@@ -185,7 +185,15 @@
   (is-error (nth-value 1 (divide-on-index '(1 2 3 4 5 6) 7 :fail t)) 'simple-error)
 
   ;;divide-on-true
+  (is-values (divide-on-true #'evenp '(1 3 5 2 9)) '((1 3 5) (2 9)))
+  (is (divide-on-true #'evenp '(1 3 5 7 9)) '(1 3 5 7 9))
+  (is-error (divide-on-true #'evenp '(1 3 5 7 9) :fail t) 'simple-error)
+
   ;;divide-after-true
+  (is-values (divide-after-true #'evenp '(1 3 5 2 9)) '((1 3 5 2) (9)))
+  (is (divide-after-true #'evenp '(1 3 5 7 9)) '(1 3 5 7 9))
+  (is-error (divide-after-true #'evenp '(1 3 5 7 9) :fail t) 'simple-error)
+
   ;;remove-if-member
   ;;splitfilter
   ;;split-sequence-on-subsequence
