@@ -453,6 +453,7 @@ WARNING: This isn't always a great idea for production code. Tryit will mask all
                   (values nil nil))))))))
 
 (defun divide-on-index (list/seq index &key fail)
+  "Divides a list into two parts at the specified index. The two parts are returned as values. If the index is too large for the sequence, divide-on-index will silently return the sequence as the first value. Set the :fail keyword T to raise an error instead."
   (let ((i index))
     (divide-after-true
      (lambda (x)
