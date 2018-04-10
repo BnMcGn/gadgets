@@ -88,10 +88,10 @@ you need something more specific."
 (defun string-join (filler strings)
   (format nil (format nil "~~{~~a~~^~a~~}" filler) strings))
 
-(defun assoc-cdr (&rest params)
+(defun assoc-cdr (&rest keys-and-alists)
   "A shortcut for (cdr (assoc ...)) to give immediate access to an alist
 value."
-  (cdr (apply #'assoc params)))
+  (cdr (apply #'assoc keys-and-alists)))
 
 (defun assoc-all (item alist &key (test #'eql))
   "Gets all items associated with a key, not just the first. Returns a list
