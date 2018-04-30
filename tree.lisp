@@ -3,18 +3,83 @@
 
 (in-package :gadgets)
 
-(defmacro dotree ((subtree tree &optional result) &body body)
-  "Iterate over each SUBTREE of the TREE in depth-first order.
-   Optionally return RESULT."
-  (with-gensyms (rec child)
-    `(labels ((,rec (,subtree)
-                ,@body
-                (unless (atom ,subtree)
-                  (dolist (,child ,subtree)
-                    (,rec ,child)))))
-       (awhen ,tree
-         (,rec it))
-       ,result)))
+(defvar *tree-leaf-p* nil "Is the node being processed a leaf or a branch?")
+(defvar *tree-stack* nil "Pointers to the parentage of the current node. Includes current node.")
+(defvar *tree-index-stack* nil "Indices that lead to the address of the current node.")
+(defvar *tree-process-branches* t)
+(defvar *tree-process-leaves* t)
+(defvar *tree-breadth-first* nil)
+(defparameter *tree-leaf-test* nil)
+(defparameter *tree-branch-filter* nil)
+
+(defun %proc-branch (branch exec)
+  (collecting
+      (let ((stor nil))
+        (loop
+          for item in branch
+          for i from 0
+          do
+            (let ((*tree-stack* (cons item *tree-stack*))
+                  (*tree-index-stack* (cons i *tree-index-stack*)))
+              (if (funcall *tree-leaf-test* item)
+                  (when *tree-process-leaves*
+                    (collect
+                        (let ((*tree-leaf-p* t))
+                          (lambda ()
+                            (funcall exec item)))))
+                  (progn
+                    (when *tree-process-branches*
+                      (collect
+                          (let ((*tree-leaf-p* nil))
+                            (lambda ()
+                              (funcall exec item)))))
+                    ;;FIXME: prev will want to be able to effect how and if of
+                    ;; execution of following.
+                    (let ((sub
+                           (lambda ()
+                             (mapc #'funcall
+                                   (%proc-branch
+                                    (funcall *tree-branch-filter* item) exec)))))
+                      (if *tree-breadth-first*
+                          (push sub stor) ;; Store to execute at end
+                          (collect sub))))))) ;; Execute as found
+        (mapc #'collect (nreverse stor)))))
+
+(defun call-with-tree (func
+                       tree
+                       &key
+                         (order :depth)
+                         (proc-branch t)
+                         proc-leaf
+                         (branch-filter #'identity)
+                         (leafp #'atom))
+  (unless (member order '(:depth :breadth))
+    (error "Order must be :depth or :breadth"))
+  (mapc #'funcall
+        (let ((*tree-process-branches* proc-branch)
+              (*tree-process-leaves* proc-leaf)
+              (*tree-breadth-first* (eq order :breadth))
+              (*tree-leaf-test* leafp)
+              (*tree-branch-filter* branch-filter))
+          (%proc-branch tree func))))
+
+(defmacro dotree ((var-for-leaf/branch
+                   tree
+                   &key
+                   result
+                   (order :depth)
+                   (proc-branch t)
+                   (proc-leaf t)
+                   (branch-filter #'identity)
+                   (leafp #'atom))
+                  &body body)
+  `(progn
+     (call-with-tree
+      (lambda (,var-for-leaf/branch) ,@body)
+      ,tree
+      :order ,order :proc-branch ,proc-branch :proc-leaf ,proc-leaf :branch-filter
+      ,branch-filter :leafp ,leafp)
+     ,result))
 
 (defmacro doleaves ((node tree &optional result) &body body)
   "Iterate over each leaf NODE of the TREE in depth-first order.
