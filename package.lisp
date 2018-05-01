@@ -202,4 +202,8 @@
            :quoted-p
            :quoted-list-p
            :string-join
-           :sequence->list))
+           :sequence->list
+           :call-with-tree
+           :*tree-leaf-p*
+           :*tree-stack*
+           :*tree-index-stack*))

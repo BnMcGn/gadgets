@@ -16,11 +16,12 @@
   (collecting
       (let ((stor nil))
         (loop
-          for item in branch
+          for item-tmp in branch
           for i from 0
           do
-            (let ((*tree-stack* (cons item *tree-stack*))
-                  (*tree-index-stack* (cons i *tree-index-stack*)))
+            (let ((*tree-stack* (cons item-tmp *tree-stack*))
+                  (*tree-index-stack* (cons i *tree-index-stack*))
+                  (item item-tmp))
               (if (funcall *tree-leaf-test* item)
                   (when *tree-process-leaves*
                     (collect
@@ -39,7 +40,9 @@
                            (lambda ()
                              (mapc #'funcall
                                    (%proc-branch
-                                    (funcall *tree-branch-filter* item) exec)))))
+                                    (funcall
+                                     (or *tree-branch-filter* #'identity) item)
+                                    exec)))))
                       (if *tree-breadth-first*
                           (push sub stor) ;; Store to execute at end
                           (collect sub))))))) ;; Execute as found
@@ -51,17 +54,18 @@
                          (order :depth)
                          (proc-branch t)
                          proc-leaf
-                         (branch-filter #'identity)
+                         branch-filter
                          (leafp #'atom))
   (unless (member order '(:depth :breadth))
     (error "Order must be :depth or :breadth"))
-  (mapc #'funcall
-        (let ((*tree-process-branches* proc-branch)
-              (*tree-process-leaves* proc-leaf)
-              (*tree-breadth-first* (eq order :breadth))
-              (*tree-leaf-test* leafp)
-              (*tree-branch-filter* branch-filter))
-          (%proc-branch tree func))))
+  (let ((*tree-process-branches* proc-branch)
+        (*tree-process-leaves* proc-leaf)
+        (*tree-breadth-first* (eq order :breadth))
+        (*tree-leaf-test* leafp)
+        (*tree-branch-filter* branch-filter))
+    (dolist (fn (%proc-branch
+                 (funcall (or *tree-branch-filter* #'identity) tree) func))
+         (funcall fn))))
 
 (defmacro dotree ((var-for-leaf/branch
                    tree
@@ -70,7 +74,7 @@
                    (order :depth)
                    (proc-branch t)
                    (proc-leaf t)
-                   (branch-filter #'identity)
+                   branch-filter
                    (leafp #'atom))
                   &body body)
   `(progn
