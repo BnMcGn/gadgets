@@ -123,17 +123,19 @@
   (ok (string-equal-caseless "123a" "123A"))
 
   ;;boolify
-  (is nil (boolify 0))
-  (is t (boolify 1))
-  (is t (boolify 5))
-  (is nil (boolify "no"))
-  (is t (boolify "yes"))
-  (is t (boolify "y"))
-  (is t (boolify "t"))
-  (is t (boolify '(1 2 3)))
-  (is t (boolify t))
-  (is t (boolify #(1 2 3)))
-  (is nil (boolify #()))
+  ;;FIXME: temp hack. Something broken in compilation here.
+  (progn
+    (is (boolify 0) nil)
+    (is (boolify 1) t)
+    (is (boolify 5) t)
+    (is (boolify "no") nil)
+    (is (boolify "yes") t)
+    (is (boolify "y") t)
+    (is (boolify "t") t)
+    (is (boolify '(1 2 3)) t)
+    (is (boolify t) t)
+    (is (boolify #(1 2 3)) t)
+    (is (boolify #()) nil))
 
   ;;tryit
   ;;chunk
