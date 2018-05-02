@@ -65,13 +65,13 @@
                          (proc-branch t)
                          proc-leaf
                          branch-filter
-                         (leafp #'atom))
+                         leaf-test)
   (unless (member order '(:depth :breadth))
     (error "Order must be :depth or :breadth"))
   (let ((*tree-process-branches* proc-branch)
         (*tree-process-leaves* proc-leaf)
         (*tree-breadth-first* (eq order :breadth))
-        (*tree-leaf-test* leafp)
+        (*tree-leaf-test* (or leaf-test #'atom))
         (*tree-branch-filter* branch-filter))
     (let ((res (%proc-branch
                 (funcall (or *tree-branch-filter* #'identity) tree) func)))
@@ -89,14 +89,14 @@
                    (proc-branch t)
                    (proc-leaf nil)
                    branch-filter
-                   (leafp #'atom))
+                   leaf-test)
                   &body body)
   `(progn
      (call-with-tree
       (lambda (,var-for-leaf/branch) ,@body)
       ,tree
       :order ,order :proc-branch ,proc-branch :proc-leaf ,proc-leaf :branch-filter
-      ,branch-filter :leafp ,leafp)
+      ,branch-filter :leaf-test ,leaf-test)
      ,result))
 
 (defmacro doleaves ((node tree &optional result) &body body)
