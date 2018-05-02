@@ -27,26 +27,36 @@
                     (collect
                         (let ((*tree-leaf-p* t))
                           (lambda ()
-                            (funcall exec item)))))
+                            (funcall exec item)
+                            nil))))
                   (progn
                     (when *tree-process-branches*
                       (collect
                           (let ((*tree-leaf-p* nil))
                             (lambda ()
-                              (funcall exec item)))))
+                              (funcall exec item)
+                              nil))))
                     ;;FIXME: prev will want to be able to effect how and if of
                     ;; execution of following.
                     (let ((sub
                            (lambda ()
-                             (mapc #'funcall
-                                   (%proc-branch
-                                    (funcall
-                                     (or *tree-branch-filter* #'identity) item)
-                                    exec)))))
+                             (let ((res (%proc-branch
+                                         (funcall
+                                          (or *tree-branch-filter* #'identity) item)
+                                         exec)))
+                               (mapc #'funcall (butlast res))
+                               (last-car res)))))
                       (if *tree-breadth-first*
                           (push sub stor) ;; Store to execute at end
                           (collect sub))))))) ;; Execute as found
-        (mapc #'collect (nreverse stor)))))
+        (collect (nreverse stor)))))
+
+;;FIXME: Doesn't support switching between depth and breadth first mid-tree.
+(defun %handle-proc-branch-tail (tail)
+  (collecting
+      (dolist (item tail)
+        (dolist (new (funcall item))
+          (when (functionp new) (collect new))))))
 
 (defun call-with-tree (func
                        tree
@@ -63,9 +73,13 @@
         (*tree-breadth-first* (eq order :breadth))
         (*tree-leaf-test* leafp)
         (*tree-branch-filter* branch-filter))
-    (dolist (fn (%proc-branch
-                 (funcall (or *tree-branch-filter* #'identity) tree) func))
-         (funcall fn))))
+    (let ((res (%proc-branch
+                (funcall (or *tree-branch-filter* #'identity) tree) func)))
+      (mapc #'funcall (butlast res))
+      (loop
+         with items = (last-car res)
+         while items
+         do (setf items (%handle-proc-branch-tail items))))))
 
 (defmacro dotree ((var-for-leaf/branch
                    tree
@@ -73,7 +87,7 @@
                    result
                    (order :depth)
                    (proc-branch t)
-                   (proc-leaf t)
+                   (proc-leaf nil)
                    branch-filter
                    (leafp #'atom))
                   &body body)
