@@ -236,4 +236,16 @@
   ;;with-temporary-directory
   ;;try-awhile
 
-  (finalize))
+  ;;dotree
+
+
+  (is '(4 7 1 2 5 3 6)
+      (collecting
+          (dotree (x '((1 2 (3)) 4 (5 (6)) 7) :proc-branch nil :order :width)
+            (collect x))))
+  (is '(1 2 3 4 5 6 7)
+      (collecting
+          (dotree (x '((1 2 (3)) 4 (5 (6)) 7) :proc-branch nil :order :depth)
+            (collect x))))
+
+  )
