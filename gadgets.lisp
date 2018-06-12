@@ -546,6 +546,7 @@ WARNING: This isn't always a great idea for production code. Tryit will mask all
     (list sequence)))
 
 (defun first-match (predicate list)
+  "See also 'some'"
   (multiple-value-bind (val sig)
       (dolist (x list)
         (when (funcall predicate x)
