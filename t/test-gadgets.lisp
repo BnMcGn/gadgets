@@ -1,14 +1,13 @@
 (in-package :cl-user)
 (defpackage test-gadgets
-  (:use :cl :prove :gadgets)
-  (:export #:test-gadgets))
+  (:use :cl :prove :gadgets))
 (in-package :test-gadgets)
 
 
 (plan 90)
 
 ;;symb
-(is 'cl-user::qwer (symb 'qw 'er))
+(is 'qwer (symb 'qw 'er))
 
 ;;string-unless-number
 (is "asdf" (string-unless-number "asdf"))
@@ -16,9 +15,19 @@
 (is "1.0" (string-unless-number "1.0"))
 
 ;;symbol-unless-number
+(is 'asdf (symbol-unless-number "asdf"))
+(is 5 (symbol-unless-number "5"))
+
 ;;not-empty
+(ok (not-empty "asdf"))
+(ok (not (not-empty "")))
+
 ;;ret
+(is 4 (ret x 3 (incf x)))
+
 ;;def-as-func
+(def-as-func test-symbol (lambda () 3))
+(is 3 (test-symbol))
 
 ;;sequences-start-same
 (ok (sequences-start-same "asdf" "as"))
@@ -65,11 +74,34 @@
 (is 2 (getf (hash->plist (rekey '(:a 1 :b 2) '(:a :c :b :a))) :a))
 
 ;;do-alist
+(let ((k nil)
+      (v nil))
+  (do-alist (key value '((:a . 1) (:b . 2) (:c . 3)))
+    (setf k key)
+    (setf v value))
+  (is :c k)
+  (is 3 v))
+
 ;;do-hash-table
-;;key-in-hash?
+(let ((data (alist->hash '((:a . 1) (:b . 2) (:c . 3)))))
+  (let ((k nil)
+        (v nil))
+    (do-hash-table (key value data)
+      (setf k key)
+      (setf v value))
+    (is :c k)
+    (is 3 v))
+
+  ;;key-in-hash?
+  (ok (key-in-hash? :b data))
+  (ok (not (key-in-hash? :d data))))
+
 ;;xsubseq
+(is "asty" (xsubseq "asdfquerty" 2 7 :type 'string))
+
 ;;sequence->list
-;;multiple-value-*
+(is #\a (car (sequence->list "asdf")))
+
 ;;or2
 
 ;;extract-keywords
