@@ -160,6 +160,8 @@
 
 ;;tryit
 ;;chunk
+(is '(5) (last-car (chunk 2 '(1 2 3 4 5))))
+
 ;;flatten-1
 (let ((res (flatten-1 '((1 2 3) nil (nil) ((4 5) (6 7)) (8 . 9)))))
   (is 1 (car res))
@@ -218,8 +220,16 @@
 (is-error (divide-after-true #'evenp '(1 3 5 7 9) :fail t) 'simple-error)
 
 ;;remove-if-member
+(is '(1 2 4) (remove-if-member '(1 2 3 4 5) '(3 5 9)))
+
 ;;splitfilter
+(is '(1 3 5) (nth-value 1 (splitfilter #'evenp (range 6))))
+
 ;;split-sequence-on-subsequence
+(is '("a" "f") (split-sequence-on-subseq "sd" "asdf"))
+(is-values (split-sequence-on-subseq '("af" "er" "ic") "the quick brown fox")
+           '(("the qu" "k brown fox") "ic"))
+
 ;;first-match
 
 ;;divide-tree
