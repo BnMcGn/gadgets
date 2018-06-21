@@ -9,6 +9,10 @@
 ;;symb
 (is 'qwer (symb 'qw 'er))
 
+;;capitalize-first
+;;to-lowercase
+;;to-uppercase
+
 ;;string-unless-number
 (is "asdf" (string-unless-number "asdf"))
 (is 1 (string-unless-number "1"))
@@ -51,6 +55,8 @@
 
 ;;assoc-all
 (is '(1 4) (assoc-all :a '((:a . 1) (:b . 2) (:c . 3) (:a . 4))))
+
+;;assoc-or
 
 ;;alist-p
 (ok (alist-p nil))
@@ -103,9 +109,21 @@
 (is #\a (car (sequence->list "asdf")))
 
 ;;or2
+(is 1 (or2 (values 1 t) 2))
+(is 2 (or2 (values 1 nil) 2))
+(is 1 (or2 (values 1) 2))
+
+;;apply-compose
+;;fetch-keyword
 
 ;;extract-keywords
 ;;bind-extracted-keywords
+(bind-extracted-keywords ('(one two :three 3 :four 5 :eight 7 9) other :three :four)
+  (is 3 three)
+  (is 5 four)
+  (is 'one (car other))
+  (ok (member :eight other))
+  (ok (not (member :three other))))
 
 ;;range
 (is '(0 1 2 3) (range 4))
@@ -137,6 +155,8 @@
    (when (eq c 3)
      (princ (+ a b))))
  "3")
+
+;;string-equal*
 
 ;;string-equal-caseless
 (is nil (string-equal-caseless "asdf" "ASDFX"))
@@ -189,6 +209,8 @@
   (is :b (second res))
   (ok (listp (fifth res))))
 
+;;three-way
+
 ;;string-equal-case
 (ok (string-equal-case "a" :|a|))
 (is nil (string-equal-case "a" :a))
@@ -202,7 +224,17 @@
 (is nil (string-equal-multiple "a()" "a[]"))
 
 ;;match-a-symbol
+(is :x (match-a-symbol "X" '(:x)))
+(ok (null (match-a-symbol "y" '(:x))))
+
 ;;match-various
+(let ((matcher (match-various '(:a b "c" 4))))
+  (is :a (funcall matcher "a"))
+  (is "c" (funcall matcher "C"))
+  (is 'b (funcall matcher "B"))
+  (is 4 (funcall matcher "4"))
+  (ok (null (funcall matcher "asdf"))))
+
 ;;divide-on-index
 (is '(4 5 6) (nth-value 1 (divide-on-index '(1 2 3 4 5 6) 3)))
 (is nil (nth-value 1 (divide-on-index '(1 2 3 4 5 6) 6)))
@@ -225,12 +257,13 @@
 ;;splitfilter
 (is '(1 3 5) (nth-value 1 (splitfilter #'evenp (range 6))))
 
-;;split-sequence-on-subsequence
+;;split-sequence-on-subseq
 (is '("a" "f") (split-sequence-on-subseq "sd" "asdf"))
 (is-values (split-sequence-on-subseq '("af" "er" "ic") "the quick brown fox")
            '(("the qu" "k brown fox") "ic"))
 
 ;;first-match
+;;ordered-unique
 
 ;;divide-tree
 (multiple-value-bind (outer inner)
