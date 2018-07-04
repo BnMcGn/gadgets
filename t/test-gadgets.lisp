@@ -10,8 +10,13 @@
 (is 'qwer (symb 'qw 'er))
 
 ;;capitalize-first
+(is "Asdf" (capitalize-first "asdf"))
+
 ;;to-lowercase
+(is "asdf" (to-lowercase "AsDF"))
+
 ;;to-uppercase
+(is "ASDF" (to-uppercase "aSdf"))
 
 ;;string-unless-number
 (is "asdf" (string-unless-number "asdf"))
@@ -57,6 +62,7 @@
 (is '(1 4) (assoc-all :a '((:a . 1) (:b . 2) (:c . 3) (:a . 4))))
 
 ;;assoc-or
+(is '(:c . 3) (assoc-or '(:e :t :c) '((:a . 1) (:b . 2) (:c . 3) (:a . 4))))
 
 ;;alist-p
 (ok (alist-p nil))
@@ -115,6 +121,8 @@
 
 ;;apply-compose
 ;;fetch-keyword
+(is-values (fetch-keyword :x '(1 2 3 :x 4 5)) '(4 t))
+(is-values (fetch-keyword :y '(1 2 3 :x 4 5)) '(nil nil))
 
 ;;extract-keywords
 ;;bind-extracted-keywords
@@ -179,6 +187,9 @@
   (is (boolify #()) nil))
 
 ;;tryit
+(is-values (tryit (error "Arrgh!")) '(nil nil))
+(is-values (tryit 1) '(1 t))
+
 ;;chunk
 (is '(5) (last-car (chunk 2 '(1 2 3 4 5))))
 
@@ -210,6 +221,9 @@
   (ok (listp (fifth res))))
 
 ;;three-way
+(is 'a (three-way -1 'a 'b 'c))
+(is 'b (three-way 0 'a 'b 'c))
+(is 'c (three-way 1 'a 'b 'c))
 
 ;;string-equal-case
 (ok (string-equal-case "a" :|a|))
@@ -263,7 +277,11 @@
            '(("the qu" "k brown fox") "ic"))
 
 ;;first-match
+(is-values (first-match #'evenp '(1 3 5 4 2)) '(4 t))
+(is-values (first-match #'evenp '(1 3 5)) '(nil nil))
+
 ;;ordered-unique
+(is '(1 2 3 4 5) (ordered-unique '(1 1 2 3 2 1 4 5 1 2 4)))
 
 ;;divide-tree
 (multiple-value-bind (outer inner)
