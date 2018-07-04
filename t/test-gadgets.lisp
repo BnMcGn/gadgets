@@ -244,7 +244,7 @@
 ;;match-various
 (let ((matcher (match-various '(:a b "c" 4))))
   (is :a (funcall matcher "a"))
-  (is "c" (funcall matcher "C"))
+  (isnt "c" (funcall matcher "C"))
   (is 'b (funcall matcher "B"))
   (is 4 (funcall matcher "4"))
   (ok (null (funcall matcher "asdf"))))
