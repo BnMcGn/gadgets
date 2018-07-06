@@ -221,9 +221,8 @@
   (ok (listp (fifth res))))
 
 ;;three-way
-(is 'a (three-way -1 'a 'b 'c))
-(is 'b (three-way 0 'a 'b 'c))
-(is 'c (three-way 1 'a 'b 'c))
+(is '(a b c)
+    (mapcar (lambda (x) (three-way x 'a 'b 'c)) '(-1 0 1)))
 
 ;;string-equal-case
 (ok (string-equal-case "a" :|a|))
@@ -298,9 +297,15 @@
 
 ;;aif2only
 ;;do-file-by-line
+
 ;;map-file-by-line
+(is '(3 3 5 4 4) (map-file-by-line
+                  #'length (asdf:system-relative-pathname 'gadgets "t/sample.txt")))
+
 ;;do-list-with-rest
 ;;preserve-other-values
+
+
 ;;pif
 ;;print-lambda
 ;;print-cond
@@ -321,8 +326,6 @@
 ;;try-awhile
 
 ;;dotree
-
-
 (is '(4 7 1 2 5 3 6)
     (collecting
         (dotree (x '((1 2 (3)) 4 (5 (6)) 7)

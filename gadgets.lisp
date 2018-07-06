@@ -863,7 +863,7 @@ To use multiple input lists (like mapcar) insert the keyword :input between func
                    (setf curr (cdr curr))))))))
 
 (defun mapc-improper (func list?)
-  "Mapc over a list, proper or not. Original list is returned. Like mapc, mapc-cons is used for side effects only."
+  "Mapc over a list, proper or not. Original list is returned. Like mapc, mapc-improper is used for side effects only."
   (let ((curr list?))
     (loop do
          (if (null curr)
@@ -953,8 +953,7 @@ trying after waiting a while"
     (make-pathname :defaults path
                    :directory (append (pathname-directory path) exts))))
 
-(defun call-with-temporary-directory
-    (thunk &key (want-pathname-p t))
+(defun call-with-temporary-directory (thunk &key (want-pathname-p t))
   (loop
      with donep = nil
      until donep
