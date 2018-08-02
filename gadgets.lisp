@@ -953,6 +953,9 @@ trying after waiting a while"
     (make-pathname :defaults path
                    :directory (append (pathname-directory path) exts))))
 
+(defun userhome-relative-pathname (name)
+  (merge-pathnames name (asdf/cl:user-homedir-pathname)))
+
 (defun call-with-temporary-directory (thunk &key (want-pathname-p t))
   (loop
      with donep = nil

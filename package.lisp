@@ -206,4 +206,5 @@
            :call-with-tree
            :*tree-leaf-p*
            :*tree-stack*
-           :*tree-index-stack*))
+           :*tree-index-stack*
+           :userhome-relative-pathname))
