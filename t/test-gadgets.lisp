@@ -296,15 +296,15 @@
   (is nil outer))
 
 ;;aif2only
-;;do-file-by-line
 
+;;do-file-by-line
 ;;map-file-by-line
 (is '(3 3 5 4 4) (map-file-by-line
                   #'length (asdf:system-relative-pathname 'gadgets "t/sample.txt")))
 
 ;;do-list-with-rest
 ;;preserve-other-values
-
+(is '(2 2 3) (preserve-other-values (values 1 2 3) #'1+))
 
 ;;pif
 ;;print-lambda
@@ -313,9 +313,14 @@
 ;;print-all-values
 ;;collecting-set
 ;;map-tuples
+
 ;;maplist/step
 ;;map-by-2
+(is '((1 2) (3 4)) (map-by-2 (lambda (x y) (list x y)) '(1 2 3 4)))
+
 ;;mapcan-by-2
+(is '(1 2 3 4) (mapcan-by-2 (lambda (x y) (list x y)) '(1 2 3 4)))
+
 ;;map-assoc
 ;;with-file-lock
 ;;encode-time-delta
