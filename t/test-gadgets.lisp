@@ -304,7 +304,7 @@
 
 ;;do-list-with-rest
 ;;preserve-other-values
-(is '(2 2 3) (preserve-other-values (values 1 2 3) #'1+))
+(is-values (preserve-other-values (values 1 2 3) #'1+) '(2 2 3))
 
 ;;pif
 ;;print-lambda
