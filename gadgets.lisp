@@ -979,7 +979,7 @@ trying after waiting a while"
 
 (defmacro with-temporary-directory ((&key pathname) &body body)
   `(call-with-temporary-directory
-    (lambda (,@pathname)
+    (lambda (,@(when pathname (list pathname)))
       ,@body)))
 
 (defun try-awhile (predicate &key (sleep 0.001) (wait 1.0) on-success on-fail)
