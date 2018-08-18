@@ -207,4 +207,4 @@
            :*tree-leaf-p*
            :*tree-stack*
            :*tree-index-stack*
-           :userhome-relative-pathname))
+           :homedir-relative-pathname))
