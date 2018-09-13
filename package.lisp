@@ -207,4 +207,6 @@
            :*tree-leaf-p*
            :*tree-stack*
            :*tree-index-stack*
-           :homedir-relative-pathname))
+           :homedir-relative-pathname
+           :make-clock
+           :defclock))

@@ -1006,6 +1006,19 @@ Try-awhile will return the predicate value on success or nil on failure. If a fu
          (when sleep
            (sleep sleep)))))
 
+(defun make-clock (ticks-per-second)
+  (unless (< ticks-per-second internal-time-units-per-second)
+    (error "Internal clock will not support that many ticks per second"))
+  (let ((units (floor internal-time-units-per-second ticks-per-second))
+        (start (get-internal-real-time)))
+    (lambda ()
+      (floor (- (get-internal-real-time) start) units))))
+
+(defmacro defclock (name ticks-per-second)
+  "Defines a function that will return an integer number of ticks since it started."
+  `(eval-always
+     (def-as-func ,name (make-clock ,ticks-per-second))))
+
 (defun truncate-string (str &key (length 20) (indicator "..."))
   (let ((ln (length str)))
     (if (> ln length)
