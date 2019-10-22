@@ -954,7 +954,7 @@ trying after waiting a while"
                    :directory (append (pathname-directory path) exts))))
 
 (defun homedir-relative-pathname (name)
-  ;;FIXME: Why is internal symbol necessary here? 
+  ;;FIXME: Why is internal symbol necessary here?
   (merge-pathnames name (uiop::user-homedir-pathname)))
 
 (defun call-with-temporary-directory (thunk &key (want-pathname-p t))
