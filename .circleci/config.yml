@@ -18,6 +18,7 @@ jobs:
       - run: curl -L https://raw.githubusercontent.com/roswell/roswell/release/scripts/install-for-ci.sh | bash
       #- run: ros install neil-lindquist/ci-utils # for run-fiveam
       - run: ros install prove # for run-prove
+      - run: ros install gadgets # SBCL/quicklisp/CircleCI don't load right. This should help.
       #- run: ros install rove # for [run-] rove
 
       #- run: run-fiveam -e t -l foo/test :foo-tests
