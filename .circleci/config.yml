@@ -2,6 +2,8 @@ version: 2
 
 jobs:
   installation:
+    docker:
+      - image: circleci/buildpack-deps:stretch-curl
     steps:
       - run:
           name: Setup Environment Variables
