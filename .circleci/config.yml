@@ -1,24 +1,18 @@
 version: 2
 
 jobs:
-  installation:
-    docker:
-      - image: circleci/buildpack-deps:stretch-curl
-    steps:
-      - run:
-          name: Setup Environment Variables
-          # This is the only way CircleCI allows setting environmental variables accross steps
-          command: |
-            echo "export PATH=$HOME/.roswell/bin:$PATH" >> $BASH_ENV
-
   sbcl:
-    requires: installation 
     docker:
       - image: circleci/buildpack-deps:stretch-curl
     environment:
       LISP: sbcl-bin
     steps:
       - checkout
+      # This is the only way CircleCI allows setting environmental variables accross steps
+      - run:
+          name: Setup Environment Variables
+          command: |
+            echo "export PATH=$HOME/.roswell/bin:$PATH" >> $BASH_ENV
 
       - run: echo $LISP
       - run: curl -L https://raw.githubusercontent.com/roswell/roswell/release/scripts/install-for-ci.sh | bash
