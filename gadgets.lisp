@@ -335,7 +335,7 @@ keyword."
   (car (last list)))
 
 (defun string-equal* (a b)
-  "Broad version of string equal. Will take input that is not a string or symbol."
+  "Broad version of string-equal. Will take input that is not a string or symbol."
   (and
    (or (stringp a) (symbolp a)) (or (stringp b) (symbolp b))
    (string-equal a b)))
@@ -389,7 +389,7 @@ WARNING: This isn't always a great idea for production code. Tryit will mask all
          (mapc-improper #'collect x)))))
 
 (defun flatten-when (predicate items &key descend-all)
-  "Recursively flattens any conses found in items if the predicate returns true on them. Will not flatten NILs unless the predicate indicates it. The predicate will not be called on non-cons items. Flatten-when will not normally descend into lists which it will not flatten, stopping at any list or cons item that fails the predicate. To cause it to descend into non-matching portions of the tree, set the :descend-all keyword."
+  "Recursively flattens any conses found in items if the predicate returns true on them. Will not flatten NILs unless the predicate indicates it. The predicate will not be called on non-cons items. Flatten-when will not normally descend into lists which it will not flatten, passing unchanged any list or cons item that fails the predicate. To cause it to descend into non-matching portions of the tree, set the :descend-all keyword."
   (collecting
     (labels ((proc (items)
                (mapc-improper
@@ -554,6 +554,13 @@ WARNING: This isn't always a great idea for production code. Tryit will mask all
     (if sig
         (values val t)
         (values nil nil))))
+
+(defun first-match-index (predicate list)
+  "Returns the index of the first item in list that satisfies predicate."
+  (loop for itm in list
+        for i from 0
+        when (funcall predicate itm)
+        do (return-from first-match-index i)))
 
 (defun ordered-unique (list &key (test #'eql))
   "Returns a unique list of the items in list in the order in which they first
