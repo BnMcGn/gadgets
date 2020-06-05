@@ -429,10 +429,11 @@ they were given."
 (defmacro multiple-valplex (values-form &body form-with-Vn-vars)
   (let* ((maxnum
           (loop for itm in (flatten form-with-Vn-vars)
-             maximizing (aif (ignore-errors
-                               (parse-integer
-                                (subseq (mkstr itm) 1)))
-                             it
+                maximizing (alexandria:if-let
+                               ((res (ignore-errors
+                                      (parse-integer
+                                       (subseq (mkstr itm) 1)))))
+                             res
                              0)))
          (symblist
           (loop for i from 0 upto maxnum
@@ -441,23 +442,3 @@ they were given."
        (declare (ignorable ,@symblist))
        ,@form-with-Vn-vars)))
 
-;;Doesn't really get used
-(defmacro autobind-specials ((vars params prefix) &body body)
-  "A convenience macro to allow function parameters to override special vars. Given a series of specials named *prefix-thing*, a symbol in vars named thing and prefix set to '*prefix-, then 'thing' will be bound to the value of the keyword thing, if it is found in the params, else *prefix-thing*, that being unbound, by a default value. The default value can be specified by replacing thing in the vars list with (thing <default>), much like in a lambda list."
-  (let ((vars (collecting
-               (dolist (v vars)
-                 (collect (if (symbolp v) (list v nil) v)))))
-        (pbound (gensym)))
-    `(let ((,pbound (extract-keywords ',(mapcar #'car vars) ,params)))
-       (let ,(collecting
-              (dolist (v vars)
-                (let ((specsym (symb prefix (car v) '*)))
-                  (collect
-                      (list (car v)
-                            `(aif (assoc ',(car v) ,pbound
-                                         :test #'string-equal)
-                                  (cdr it)
-                                  (if (boundp ',specsym)
-                                      ,specsym
-                                      (second ',v))))))))
-         ,@body))))

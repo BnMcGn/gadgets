@@ -25,6 +25,10 @@
     `(multiple-value-bind (it ,sig) ,test
        (when ,sig ,@clauses))))
 
+
+#|
+Don't think anyone is using this, and it causes grumpiness in sigil/parenscript
+
 (defun sharp-backquote-reader (stream sub-char numarg)
   (declare (ignore sub-char))
   (unless numarg (setq numarg 1))
@@ -44,3 +48,4 @@
 
 (set-dispatch-macro-character
  #\# #\~ #'sharp-tilde-reader)
+|#

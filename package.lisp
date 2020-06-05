@@ -51,7 +51,6 @@
            :fetch-keyword
            :extract-keywords
            :bind-extracted-keywords
-           :autobind-specials
            :def-wrapper-func
            :range
            :loop-window
