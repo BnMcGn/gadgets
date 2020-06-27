@@ -138,8 +138,8 @@ strings."
 The hash table test can be set with :test. The method of value collection can
 be controlled with :mode. Modes are those available for
 cl-hash-util:collecting-hash-table."
-  (collecting-hash-table (:test test :mode mode)
-    (maphash (lambda (k v) (collect v k)) hash)))
+  (hu:collecting-hash-table (:test test :mode mode)
+    (maphash (lambda (k v) (hu:collect v k)) hash)))
 
 (defun rekey (store mapping &key ignore-missing (test #'eql))
   (let
@@ -240,7 +240,7 @@ value that immediately follows each. Found key/value pairs are returned as a
 plist in the first value. The cleaned list is returned as the second value.
 
 This, or the related macro bind-extracted-keywords, is particularly useful for adding features to macros. It will strip out added keywords from parameter lists, allowing the remainder to be passed to the original macro processing code."
-  (with-collectors (keypairs< rest<)
+  (cl-utilities:with-collectors (keypairs< rest<)
     (let ((currkey nil))
       (dolist (itm alist)
         (cond
@@ -269,15 +269,16 @@ body being executed with data bound to (1 2) and x bound to 3."
           ',(mapcar (lambda (x) (if (symbolp x) x (car x))) keys)
           ,source)
        (declare (ignorable ,remainder))
-       (let ,(collecting
+       (let ,(cl-utilities:collecting
               (dolist (k keys)
                 (if (listp k)
-                    (collect (list (symb (car k))
+                    (cl-utilities:collect
+                        (list (symb (car k))
                                    (if (member :multiple k)
                                        `(assoc-all ,(car k) ,extracts)
                                        `(and (assoc ,(car k) ,extracts)
                                              (cdr (assoc ,(car k) ,extracts))))))
-                    (collect (list (symb k)
+                    (cl-utilities:collect (list (symb k)
                                    `(and (assoc ,k ,extracts)
                                          (cdr (assoc ,k ,extracts))))))))
          ,@body))))
@@ -384,16 +385,16 @@ WARNING: This isn't always a great idea for production code. Tryit will mask all
 
   (flatten-1 '((1 2 3) nil (nil) ((4 5) (6 7))))
   (1 2 3 NIL (4 5) (6 7)) "
-  (collecting
+  (cl-utilities:collecting
    (dolist (x alist)
      (if (atom x)
          (when x
-           (collect x))
-         (mapc-improper #'collect x)))))
+           (cl-utilities:collect x))
+         (mapc-improper #'cl-utilities:collect x)))))
 
 (defun flatten-when (predicate items &key descend-all)
   "Recursively flattens any conses found in items if the predicate returns true on them. Will not flatten NILs unless the predicate indicates it. The predicate will not be called on non-cons items. Flatten-when will not normally descend into lists which it will not flatten, passing unchanged any list or cons item that fails the predicate. To cause it to descend into non-matching portions of the tree, set the :descend-all keyword."
-  (collecting
+  (cl-utilities:collecting
     (labels ((proc (items)
                (mapc-improper
                 (lambda (itm)
@@ -401,22 +402,22 @@ WARNING: This isn't always a great idea for production code. Tryit will mask all
                       (if (funcall predicate itm)
                           (proc itm)
                           (if descend-all
-                              (collect
+                              (cl-utilities:collect
                                   (flatten-when
                                    predicate itm
                                    :descend-all descend-all))
-                              (collect itm)))
-                      (collect itm)))
+                              (cl-utilities:collect itm)))
+                      (cl-utilities:collect itm)))
                 items)))
       (proc items))))
 
 (defun flatten-1-when (predicate items)
   "Returns a list with any conses in it flattened if predicate returns true when called with that item. Will not flatten NILs unless the predicate indicates it. The predicate will not be called on non-cons items."
-  (collecting
+  (cl-utilities:collecting
     (dolist (itm items)
       (if (and (consp itm) (funcall predicate itm))
-          (mapc-improper #'collect itm)
-          (collect itm)))))
+          (mapc-improper #'cl-utilities:collect itm)
+          (cl-utilities:collect itm)))))
 
 (defmacro three-way (test minus-clause zero-clause plus-clause)
   (let ((val (gensym)))
@@ -510,7 +511,7 @@ WARNING: This isn't always a great idea for production code. Tryit will mask all
                    (member (funcall keyfunc x) things :test test)) seq)))
 
 (defun splitfilter (predicate alist)
-  (with-collectors (in< out<)
+  (cl-utilities:with-collectors (in< out<)
     (dolist (elmt alist)
       (if (funcall predicate elmt)
           (in< elmt)
@@ -587,9 +588,9 @@ The returned closure should be called with a single argument. It will return the
                 (return-from divide-tree
                   (values
                    (lambda (x)
-                     (cat (subseq tree 0 i)
-                          (list (funcall (car res) x))
-                          (subseq tree (1+ i) (length tree))))
+                     (append (subseq tree 0 i)
+                             (list (funcall (car res) x))
+                             (subseq tree (1+ i) (length tree))))
                    (second res))))))
           (values nil tree))))
 
@@ -611,9 +612,9 @@ The returned closure should be called with a single argument. It will return the
          (t (error "Not a stream or path!"))))))
 
 (defun map-file-by-line (function stream-or-path)
-  (collecting
+  (cl-utilities:collecting
    (do-file-by-line (line stream-or-path)
-     (collect (funcall function line)))))
+     (cl-utilities:collect (funcall function line)))))
 
 (defmacro do-list-with-rest ((head tail source) &body body)
   (once-only (source)
@@ -656,10 +657,10 @@ The returned closure should be called with a single argument. It will return the
 (defmacro print-cond (&rest clauses)
   (let ((count 0))
     `(cond
-       ,@(collecting
+       ,@(cl-utilities:collecting
           (dolist (cl clauses)
             (incf count)
-            (collect `(,(car cl)
+            (cl-utilities:collect `(,(car cl)
                         (preserve-other-values
                          (progn ,@(cdr cl))
                          (lambda (x)
@@ -671,10 +672,10 @@ The returned closure should be called with a single argument. It will return the
   (let ((count 0)
         (itm (gensym)))
     `(and
-      ,@(collecting
+      ,@(cl-utilities:collecting
          (dolist (f forms)
            (incf count)
-           (collect
+           (cl-utilities:collect
                `(let ((,itm (multiple-value-list ,f)))
                   (progn (if ,itm
                              (format t "~&Print-and: Clause ~a: values:~a~%"
@@ -697,13 +698,12 @@ The returned closure should be called with a single argument. It will return the
 (defun dive ()
   *dump-stor*)
 
-(defun %setup-hash-table (data test)
+(defun %set-up-hash-table (data test)
   (if (listp data)
-      (aand (make-hash-table :test test)
-            (progn
-              (dolist (x data)
-                (setf (gethash x it) nil))
-              it))
+      (let ((stor (make-hash-table :test test)))
+        (dolist (x data)
+          (setf (gethash x stor) nil))
+        stor)
       data))
 
 (defmacro collecting-set ((&key union intersection difference (returns 'list)
@@ -717,10 +717,10 @@ The returned closure should be called with a single argument. It will return the
        (let ((,data (make-hash-table :test ,test))
              ,@(when intersection
                      `((,intersection-d
-                        (%setup-hash-table ,intersection ,test))))
+                        (%set-up-hash-table ,intersection ,test))))
              ,@(when difference
                      `((,difference-d
-                        (%setup-hash-table ,difference ,test)))))
+                        (%set-up-hash-table ,difference ,test)))))
          (labels
              ((set< (item)
                 ,@(when intersection
@@ -755,7 +755,7 @@ To use multiple input lists (like mapcar) insert the keyword :input between func
 (defun maplist/step (func step list &rest more-lists)
   (labels ((proc (result lists)
              (multiple-value-bind (curr rest)
-                 (with-collectors (curr< rest<)
+                 (cl-utilities:with-collectors (curr< rest<)
                    (dolist (list lists)
                      (unless list
                        (return-from proc (nreverse result)))

@@ -5,7 +5,7 @@
   :description "Ben McGunigle's utility collection"
   :author "Ben McGunigle <bnmcgn@gmail.com>"
   :license "Apache License, version 2.0"
-  :depends-on (#:alexandria #:uiop #:cl-hash-util) 
+  :depends-on (#:alexandria #:uiop #:cl-hash-util #:cl-utilities) 
   :components ((:file "package")
                (:file "early")
                (:file "gadgets" :depends-on ("early"))))
