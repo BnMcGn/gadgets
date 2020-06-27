@@ -2,19 +2,11 @@
 
 (asdf:defsystem #:gadgets
   :serial t
-  :description "Describe gadgets here"
-  :author "Your Name <your.name@example.com>"
-  :license "Specify license here"
-  :depends-on (#:cl-utilities #:anaphora #:alexandria #:uiop #:kebab
-               #:cl-hash-util) 
+  :description "Ben McGunigle's utility collection"
+  :author "Ben McGunigle <bnmcgn@gmail.com>"
+  :license "Apache License, version 2.0"
+  :depends-on (#:alexandria #:uiop #:cl-hash-util) 
   :components ((:file "package")
                (:file "early")
-               (:file "collecting")
-               (:file "anaphorics")
-               (:file "gadgets" :depends-on ("anaphorics" "early" 
-                                             "collecting"))
-               (:file "dubious")
-               (:file "tree")
-               (:file "symtools")
-               (:file "recompile")))
+               (:file "gadgets" :depends-on ("early"))))
 

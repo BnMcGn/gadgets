@@ -81,6 +81,7 @@ you need something more specific."
             (return nil))))))
 
 (defun sequence-ends-with (seq testseq)
+  "Does the sequence end with the test sequence?"
   (sequences-start-same
    (subseq seq (max 0 (- (length seq) (length testseq))))
    testseq))
@@ -242,15 +243,17 @@ This, or the related macro bind-extracted-keywords, is particularly useful for a
   (with-collectors (keypairs< rest<)
     (let ((currkey nil))
       (dolist (itm alist)
-        (anaphora:acond
-         (currkey
-          (keypairs< (cons currkey itm))
-          (setf currkey nil))
-         ((find itm keywords :test test)
-          (setf currkey it))
-         ((and in-list (consp itm) (find (car itm) keywords :test test))
-          (keypairs< itm))
-         (t (rest< itm))))
+        (cond
+          (currkey
+           (keypairs< (cons currkey itm))
+           (setf currkey nil))
+          ((alexandria:when-let
+               ((key (find itm keywords :test test)))
+             (setf currkey key)
+             t))
+          ((and in-list (consp itm) (find (car itm) keywords :test test))
+           (keypairs< itm))
+          (t (rest< itm))))
       (when currkey
         (keypairs< (list currkey))))))
 
@@ -434,24 +437,6 @@ WARNING: This isn't always a great idea for production code. Tryit will mask all
       (and (= (+ 2 (length (mkstr a))) (length (mkstr b)))
            (string-equal (symb a '[]) b))))
 
-(defun match-a-symbol (item symbols)
-  (first-match (lambda (x) (string-equal x item)) symbols))
-
-(defun match-various (matchables)
-  "Returns a function to check if an input string - presumably input from a user - is approximately a member of the matchables list. Matchables can contain symbols, numbers or strings. Match-various will not intern the user input before comparing it to the symbols, preventing mischievous users from stuffing the symbol table."
-  (multiple-value-bind (symbols others)
-      (splitfilter #'symbolp matchables)
-    (lambda (test-string)
-      (multiple-value-bind (val sig)
-          (match-a-symbol test-string symbols)
-        (if sig
-            (values val sig)
-            (let ((res (member (string-unless-number test-string)
-                               others :test #'equal)))
-              (if res
-                  (values (car res) t)
-                  (values nil nil))))))))
-
 (defun divide-on-index (list/seq index &key fail)
   "Divides a list into two parts at the specified index. The two parts are returned as values. If the index is too large for the sequence, divide-on-index will silently return the sequence as the first value. Set the :fail keyword T to raise an error instead."
   (let ((i index))
@@ -608,48 +593,6 @@ The returned closure should be called with a single argument. It will return the
                    (second res))))))
           (values nil tree))))
 
-(defmacro with-any/all/none (&body body)
-  (let ((name (gensym)))
-    `(block ,name
-       (labels ((returner (rval) (return-from ,name rval)))
-         (macrolet ((any (test &optional (retval t))
-                      `(when ,test (returner ,retval)))
-                    (all (test &optional retval)
-                      `(when (not ,test) (returner ,retval)))
-                    (none (test &optional retval)
-                      `(when ,test (returner ,retval))))
-           ,@body)))))
-
-                                        ;anaphoric macro: 2nd expr wraps first (which is contained in it) if true,
-                                        ;else expr run plain.
-(defmacro awrap-expr-if (pred expr &body cond-expr-with-var-it)
-  `(if ,pred
-       (funcall
-        (lambda (it)
-          ,@cond-expr-with-var-it)
-        ,expr)
-       ,expr))
-
-(defmacro aif2only (test &optional then else)
-  (let ((win (gensym)))
-    `(multiple-value-bind (it ,win) ,test
-       (if ,win ,then ,else))))
-
-(defun rotating-cache (&optional initial)
-  (lambda (newval)
-    (prog1
-        initial
-      (setf initial newval))))
-
-(defun tracker-same (&key initial (test #'equal))
-  (lambda (thing)
-    (prog1
-        (funcall test initial thing)
-      (setf initial thing))))
-
-(defun tracker-different (&key initial (test (complement #'equal)))
-  (tracker-same :initial initial :test test))
-
 (defmacro do-file-by-line ((line stream-or-path) &body body)
   (with-gensyms (stream fspec)
     `(let ((,fspec ,stream-or-path))
@@ -679,22 +622,6 @@ The returned closure should be called with a single argument. It will return the
           do (prog1
                  ,@body
                (push (car ,tail) ,head))))))
-
-;;;Returns tlist (copy) with ind set to val. If ind is beyond the length of tlist,
-;;;pad out the list with padding
-(defun list-set-place (tlist ind val padding)
-  (if (<= (length tlist) ind)
-      (concatenate
-       'list
-       tlist
-       (loop for i from 1 to (- ind (length tlist))
-          collect padding)
-       (cons val nil))
-      (concatenate
-       'list
-       (subseq tlist 0 ind)
-       (list val)
-       (subseq tlist (1+ ind)))))
 
 (defmacro preserve-other-values (expression func)
   "Take the values returned by expression, pass the first of them to func,
@@ -795,16 +722,16 @@ The returned closure should be called with a single argument. It will return the
                      `((,difference-d
                         (%setup-hash-table ,difference ,test)))))
          (labels
-             ((collect (item)
+             ((set< (item)
                 ,@(when intersection
                         `((unless (nth-value 1 (gethash item ,intersection-d))
-                            (return-from collect))))
+                            (return-from set<))))
                 ,@(when difference
                         `((when (nth-value 1 (gethash item ,difference-d))
-                            (return-from collect))))
+                            (return-from set<))))
                 (setf (gethash item ,data) nil)))
            (dolist (,x ,union)
-             (collect ,x))
+             (set< ,x))
            ,@body
            ,data)))))
 
@@ -942,10 +869,6 @@ trying after waiting a while"
               `(return-from ,from-target ,value)
               `(return ,value))))))
 
-(defun cat (&rest items)
-  "A short form of (concatenate 'list ...)"
-  (apply #'concatenate 'list items))
-
 (defun extend-pathname (path &rest extensions)
   (let ((exts
          (apply #'concatenate 'list
@@ -1029,7 +952,7 @@ Try-awhile will return the predicate value on success or nil on failure. If a fu
 (defun truncate-string (str &key (length 20) (indicator "..."))
   (let ((ln (length str)))
     (if (> ln length)
-        (strcat
+        (concatenate 'string
          (subseq str 0 (- length (length indicator)))
          indicator)
         str)))
