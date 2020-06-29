@@ -83,7 +83,7 @@
               #'<))
 
 ;;rekey
-(is 2 (getf (hash->plist (rekey '(:a 1 :b 2) '(:a :c :b :a))) :a))
+(is 2 (getf (hu:hash->plist (rekey '(:a 1 :b 2) '(:a :c :b :a))) :a))
 
 ;;do-alist
 (let ((k nil)
@@ -95,7 +95,7 @@
   (is 3 v))
 
 ;;do-hash-table
-(let ((data (alist->hash '((:a . 1) (:b . 2) (:c . 3)))))
+(let ((data (hu:alist->hash '((:a . 1) (:b . 2) (:c . 3)))))
   (let ((k nil)
         (v nil))
     (do-hash-table (key value data)
@@ -143,21 +143,21 @@
 
 ;;do-window
 (is '(3 5 7 9 11)
-    (collecting
+    (cl-utilities:collecting
         (do-window (x '(1 2 3 4 5 6))
-          (collect (apply #'+ x)))))
+          (cl-utilities:collect (apply #'+ x)))))
 (is '(3 7 11)
-    (collecting
+    (cl-utilities:collecting
         (do-window (x '(1 2 3 4 5 6) :step 2)
-          (collect (apply #'+ x)))))
+          (cl-utilities:collect (apply #'+ x)))))
 (is '(3 7)
-    (collecting
+    (cl-utilities:collecting
         (do-window (x '(1 2 3 4 5) :step 2)
-          (collect (apply #'+ x)))))
+          (cl-utilities:collect (apply #'+ x)))))
 (is '(1 5 9)
-    (collecting
+    (cl-utilities:collecting
         (do-window (x '(1 2 3 4 5) :step 2 :start-padding '(0))
-          (collect (apply #'+ x)))))
+          (cl-utilities:collect (apply #'+ x)))))
 (is-print
  (do-window ((a b c) '(1 2 3 4 5 6) :size 3)
    (when (eq c 3)
@@ -236,6 +236,7 @@
 (ok (string-equal-multiple :a "A"))
 (is nil (string-equal-multiple "a()" "a[]"))
 
+#| Removed from gadgets due to lack of clarity
 ;;match-a-symbol
 (is :x (match-a-symbol "X" '(:x)))
 (ok (null (match-a-symbol "y" '(:x))))
@@ -247,6 +248,7 @@
   (is 'b (funcall matcher "B"))
   (is 4 (funcall matcher "4"))
   (ok (null (funcall matcher "asdf"))))
+|#
 
 ;;divide-on-index
 (is '(4 5 6) (nth-value 1 (divide-on-index '(1 2 3 4 5 6) 3)))
@@ -330,14 +332,16 @@
 ;;with-temporary-directory
 ;;try-awhile
 
+#| Tree utils removed from gadgets pending review
 ;;dotree
 (is '(4 7 1 2 5 3 6)
-    (collecting
+    (cl-utilities:collecting
         (dotree (x '((1 2 (3)) 4 (5 (6)) 7)
                    :proc-branch nil :proc-leaf t :order :breadth)
-          (collect x))))
+          (cl-utilities:collect x))))
 (is '(1 2 3 4 5 6 7)
-    (collecting
+    (cl-utilities:collecting
         (dotree (x '((1 2 (3)) 4 (5 (6)) 7)
                    :proc-branch nil :proc-leaf t :order :depth)
-          (collect x))))
+          (cl-utilities:collect x))))
+|#
