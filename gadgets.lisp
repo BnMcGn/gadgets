@@ -624,6 +624,22 @@ The returned closure should be called with a single argument. It will return the
                  ,@body
                (push (car ,tail) ,head))))))
 
+;;;Returns tlist (copy) with ind set to val. If ind is beyond the length of tlist,
+;;;pad out the list with padding
+(defun list-set-place (tlist ind val padding)
+  (if (<= (length tlist) ind)
+      (concatenate
+       'list
+       tlist
+       (loop for i from 1 to (- ind (length tlist))
+             collect padding)
+       (cons val nil))
+      (concatenate
+       'list
+       (subseq tlist 0 ind)
+       (list val)
+       (subseq tlist (1+ ind)))))
+
 (defmacro preserve-other-values (expression func)
   "Take the values returned by expression, pass the first of them to func,
    returning its first value as the primary value and appending the remaining

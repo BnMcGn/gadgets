@@ -114,4 +114,5 @@
            :homedir-relative-pathname
            :make-clock
            :defclock
-           :set<))
+           :set<
+   :list-set-place))
