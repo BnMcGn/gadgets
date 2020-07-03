@@ -36,7 +36,7 @@
            :chunk
            :flatten-1
            :string-equal-case
-           :divide-on-index
+           :part-on-index
            :remove-if-member
            :splitfilter
            :do-file-by-line
@@ -90,7 +90,7 @@
            :hash-table->source
            :truncate-string
            :string-equal-caseless
-           :divide-tree
+           :part-tree
            :flatten-1-when
            :map-improper
            :mapc-improper
@@ -99,8 +99,8 @@
            :ordered-unique
            :dump
            :dive
-           :divide-on-true
-           :divide-after-true
+           :part-on-true
+           :part-after-true
            :assoc-or
            :as-in-range
            :relative-to-range

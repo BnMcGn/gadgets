@@ -250,21 +250,21 @@
   (ok (null (funcall matcher "asdf"))))
 |#
 
-;;divide-on-index
-(is '(4 5 6) (nth-value 1 (divide-on-index '(1 2 3 4 5 6) 3)))
-(is nil (nth-value 1 (divide-on-index '(1 2 3 4 5 6) 6)))
-(is nil (nth-value 1 (divide-on-index '(1 2 3 4 5 6) 7)))
-(is-error (nth-value 1 (divide-on-index '(1 2 3 4 5 6) 7 :fail t)) 'simple-error)
+;;part-on-index
+(is '(4 5 6) (nth-value 1 (part-on-index '(1 2 3 4 5 6) 3)))
+(is nil (nth-value 1 (part-on-index '(1 2 3 4 5 6) 6)))
+(is nil (nth-value 1 (part-on-index '(1 2 3 4 5 6) 7)))
+(is-error (nth-value 1 (part-on-index '(1 2 3 4 5 6) 7 :fail t)) 'simple-error)
 
-;;divide-on-true
-(is-values (divide-on-true #'evenp '(1 3 5 2 9)) '((1 3 5) (2 9)))
-(is (divide-on-true #'evenp '(1 3 5 7 9)) '(1 3 5 7 9))
-(is-error (divide-on-true #'evenp '(1 3 5 7 9) :fail t) 'simple-error)
+;;part-on-true
+(is-values (part-on-true #'evenp '(1 3 5 2 9)) '((1 3 5) (2 9)))
+(is (part-on-true #'evenp '(1 3 5 7 9)) '(1 3 5 7 9))
+(is-error (part-on-true #'evenp '(1 3 5 7 9) :fail t) 'simple-error)
 
-;;divide-after-true
-(is-values (divide-after-true #'evenp '(1 3 5 2 9)) '((1 3 5 2) (9)))
-(is (divide-after-true #'evenp '(1 3 5 7 9)) '(1 3 5 7 9))
-(is-error (divide-after-true #'evenp '(1 3 5 7 9) :fail t) 'simple-error)
+;;part-after-true
+(is-values (part-after-true #'evenp '(1 3 5 2 9)) '((1 3 5 2) (9)))
+(is (part-after-true #'evenp '(1 3 5 7 9)) '(1 3 5 7 9))
+(is-error (part-after-true #'evenp '(1 3 5 7 9) :fail t) 'simple-error)
 
 ;;remove-if-member
 (is '(1 2 4) (remove-if-member '(1 2 3 4 5) '(3 5 9)))
@@ -284,16 +284,16 @@
 ;;ordered-unique
 (is '(1 2 3 4 5) (ordered-unique '(1 1 2 3 2 1 4 5 1 2 4)))
 
-;;divide-tree
+;;part-tree
 (multiple-value-bind (outer inner)
-    (divide-tree
+    (part-tree
      (lambda (x) (eq 'deepest (car (alexandria:ensure-list x))))
      '(deep (deeper (deeperer (deepest (deepester you-are-here))))))
   (is 'deepest (car inner))
   (is 'deep (car (funcall outer nil)))
   (is :x (cadr (cadadr (funcall outer :x)))))
 (multiple-value-bind (outer inner)
-    (divide-tree #'keywordp nil)
+    (part-tree #'keywordp nil)
   (is nil inner)
   (is nil outer))
 
