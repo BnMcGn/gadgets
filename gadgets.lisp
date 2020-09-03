@@ -525,9 +525,8 @@ cl-hash-util:collecting-hash-table."
       (dolist (poss (gethash (elt sequence i) searches))
         (when (sequence-starts-with (subseq sequence i) poss)
           (return-from split-sequence-on-subseq
-            (values (list (subseq sequence 0 i) (subseq sequence (+ i (length poss))))
-                    poss)))))
-    (list sequence)))
+            (values (subseq sequence 0 i) (subseq sequence (+ i (length poss))) poss)))))
+    sequence))
 
 (defun first-match (predicate list)
   "See also 'some'"
