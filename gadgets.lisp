@@ -155,6 +155,22 @@ number."
         val
         (symbolize val))))
 
+(defun boolify (item)
+  "Attempts to guess when a string or number should be interpreted as T. Postive integers and strings like \"true\" and \"yes\" will be interpreted as true. Non-empty lists and sequences are true. Most other things are NIL"
+  (typecase item
+    (string
+     (if (member (string-trim *whitespace-characters* item)
+                 '("1" "true" "yes" "t" "y") :test #'string-equal-caseless)
+         t nil))
+    (integer
+     (if (< item 1) nil t))
+    (list
+     (and (not-empty item) t))
+    (sequence
+     (and (not-empty item) t))
+    (t t)
+    (otherwise nil)))
+
 (defun not-empty (itm)
   "A predicate to detect 0 length sequences."
   (and itm (< 0 (length itm)) itm)) ;Return item if it isn't empty.
@@ -200,22 +216,6 @@ you need something more specific."
 (defun string-equal-caseless (a b)
   "Are two strings equal when case is ignored?"
   (string-equal (string-upcase a) (string-upcase b)))
-
-(defun boolify (item)
-  "Attempts to guess when a string or number should be interpreted as T. Postive integers and strings like \"true\" and \"yes\" will be interpreted as true. Non-empty lists and sequences are true. Most other things are NIL"
-  (typecase item
-    (string
-     (if (member (string-trim *whitespace-characters* item)
-                 '("1" "true" "yes" "t" "y") :test #'string-equal-caseless)
-         t nil))
-    (integer
-     (if (< item 1) nil t))
-    (list
-     (and (not-empty item) t))
-    (sequence
-     (and (not-empty item) t))
-    (t t)
-    (otherwise nil)))
 
 (defun string-equal-case (a b)
   "A case sensitive version of string-equal."
