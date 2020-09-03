@@ -4,7 +4,7 @@
 (in-package :test-gadgets)
 
 
-(plan 90)
+(plan 92)
 
 ;;symb
 (is 'qwer (symb 'qw 'er))
@@ -132,6 +132,16 @@
   (is 'one (car other))
   (ok (member :eight other))
   (ok (not (member :three other))))
+
+;;use-package-with-shadowing
+(defpackage #:test1 (:export :var1))
+(defpackage #:test2 (:export :var1 :var2))
+(defparameter test1::var1 1)
+(defparameter test2::var1 2)
+(defparameter test2::var2 3)
+(use-package-with-shadowing 'test2 'test1)
+(is 2 test1::var1)
+(is 3 test1::var2)
 
 ;;range
 (is '(0 1 2 3) (range 4))
@@ -273,9 +283,10 @@
 (is '(1 3 5) (nth-value 1 (splitfilter #'evenp (range 6))))
 
 ;;split-sequence-on-subseq
-(is '("a" "f") (split-sequence-on-subseq "sd" "asdf"))
+(is-values (split-sequence-on-subseq "sd" "asdf") '("a" "f" "sd"))
 (is-values (split-sequence-on-subseq '("af" "er" "ic") "the quick brown fox")
-           '(("the qu" "k brown fox") "ic"))
+           '("the qu" "k brown fox" "ic"))
+(is (multiple-value-list (split-sequence-on-subseq "x" "asdf")) '("asdf"))
 
 ;;first-match
 (is-values (first-match #'evenp '(1 3 5 4 2)) '(4 t))
