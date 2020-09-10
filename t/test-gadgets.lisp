@@ -324,7 +324,7 @@
 ;;print-cond
 ;;print-and
 ;;print-all-values
-;;collecting-set
+
 ;;map-tuples
 
 ;;maplist/step

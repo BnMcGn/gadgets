@@ -43,7 +43,6 @@
            :do-list-with-rest
            :pif
            :print-lambda
-           :collecting-set
            :key-in-hash?
            :first-match
            :quotef
