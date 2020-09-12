@@ -916,8 +916,12 @@ trying after waiting a while"
 
 (defmacro with-temporary-directory ((&key pathname) &body body)
   `(call-with-temporary-directory
-    (lambda (,@(when pathname (list pathname)))
-      ,@body)))
+    (lambda (,@(when pathname
+                 (unless (symbolp pathname)
+                   (error "Pathname must be a symbol or NIL"))
+                 (list pathname))))
+      ,@body)
+    :want-pathname-p pathname)
 
 ;;;
 ;;; Debugging printers
