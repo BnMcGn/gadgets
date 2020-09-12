@@ -325,8 +325,6 @@
 ;;print-and
 ;;print-all-values
 
-;;map-tuples
-
 ;;maplist/step
 ;;map-by-2
 (is '((1 2) (3 4)) (map-by-2 (lambda (x y) (list x y)) '(1 2 3 4)))
@@ -338,7 +336,6 @@
 ;;with-file-lock
 ;;encode-time-delta
 ;;cat
-;;extend-pathname
 ;;call-with-temporary-directory
 ;;with-temporary-directory
 ;;try-awhile

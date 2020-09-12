@@ -59,14 +59,12 @@
            :*whitespace-characters*
            :boolify
            :tryit
-           :map-tuples
            :maplist/step
            :map-by-2
            :preserve-other-values
            :print-cond
            :return-on-true
            :do-window
-           :extend-pathname
            :flatten-when
            :print-and
            :sequences-start-same
@@ -112,6 +110,4 @@
            :sequence->list
            :homedir-relative-pathname
            :make-clock
-           :defclock
-           :set<
    :list-set-place))
