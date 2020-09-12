@@ -983,9 +983,8 @@ trying after waiting a while"
 
 (defparameter *dump-stor* nil)
 
-(defun dump (&rest things)
-  (setf *dump-stor* things)
-  (car things))
+(defun dump (thing)
+  (setf *dump-stor* thing))
 
 (defun dive ()
   *dump-stor*)
