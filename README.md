@@ -3,8 +3,8 @@
 [![CircleCI](https://circleci.com/gh/BnMcGn/gadgets.svg?style=svg)](https://circleci.com/gh/BnMcGn/gadgets)
 
 ## symbolize
-#### Function
-#### Parameters: entity &key package
+**Function**
+**Parameters: entity &key package**
 Turns a string into an upcased symbol. The symbol will be interned in the current package if a package is not specified
 
 ## mkstr
@@ -43,7 +43,6 @@ This, or the related macro bind-extracted-keywords, is particularly useful for a
 ## bind-extracted-keywords
 #### Macro
 #### Parameters: (source remainder &rest keys) body
-(defmacro bind-extracted-keywords ((source remainder &rest keys) &body body)
 Removes the keywords named in keys, with their accompanying parameters, from
 the expression supplied in source. Source, minus the keys, is bound to
 remainder. The names of the keys are used for bindings for the accompanying
