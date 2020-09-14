@@ -86,7 +86,6 @@
            :string-equal-multiple
            :hash-table->source
            :truncate-string
-           :string-equal-caseless
            :part-tree
            :flatten-1-when
            :map-improper

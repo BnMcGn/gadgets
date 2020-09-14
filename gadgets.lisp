@@ -160,7 +160,7 @@ number."
   (typecase item
     (string
      (if (member (string-trim *whitespace-characters* item)
-                 '("1" "true" "yes" "t" "y") :test #'string-equal-caseless)
+                 '("1" "true" "yes" "t" "y") :test #'string-equal)
          t nil))
     (integer
      (if (< item 1) nil t))
@@ -212,10 +212,6 @@ you need something more specific."
   (and
    (or (stringp a) (symbolp a)) (or (stringp b) (symbolp b))
    (string-equal a b)))
-
-(defun string-equal-caseless (a b)
-  "Are two strings equal when case is ignored?"
-  (string-equal (string-upcase a) (string-upcase b)))
 
 (defun string-equal-case (a b)
   "A case sensitive version of string-equal."

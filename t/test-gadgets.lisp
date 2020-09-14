@@ -176,10 +176,6 @@
 
 ;;string-equal*
 
-;;string-equal-caseless
-(is nil (string-equal-caseless "asdf" "ASDFX"))
-(ok (string-equal-caseless "asdf" "ASDf"))
-(ok (string-equal-caseless "123a" "123A"))
 
 ;;boolify
 ;;FIXME: temp hack. Something broken in compilation here.
