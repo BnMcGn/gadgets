@@ -2,6 +2,8 @@
 
 [![CircleCI](https://circleci.com/gh/BnMcGn/gadgets.svg?style=svg)](https://circleci.com/gh/BnMcGn/gadgets)
 
+Ben McGunigle's collection of gadgets, odds, ends and utilities general.
+
 ## symbolize
 **Function**
 **Parameters: entity &key package**
@@ -26,9 +28,9 @@ Set a variable in the function namespace.
 #### Function
 #### Parameters: key alist &key in-list
 
-Find if a key is in a list, return the next item after it. if checklist
+Find if a key is in a list, return the next item after it. if in-list
  is true, test the first element of any sublists for the key and if found
-return rest of list as parameter. A bit coarser in function than getf. Will
+return the rest of the sublist. A bit coarser in function than getf. Will
 tolerate improper plists.
 
 ## extract-keywords
@@ -36,7 +38,7 @@ tolerate improper plists.
 #### Parameters: keywords alist &key in-list test
 Traverses a plist or lambda list, removing the specified keywords and the
 value that immediately follows each. Found key/value pairs are returned as a
-plist in the first value. The cleaned list is returned as the second value.
+plist. The cleaned list is returned as the second value.
 
 This, or the related macro bind-extracted-keywords, is particularly useful for adding features to macros. It will strip out added keywords from parameter lists, allowing the remainder to be passed to the original macro processing code.
 
@@ -46,15 +48,21 @@ This, or the related macro bind-extracted-keywords, is particularly useful for a
 Removes the keywords named in keys, with their accompanying parameters, from
 the expression supplied in source. Source, minus the keys, is bound to
 remainder. The names of the keys are used for bindings for the accompanying
-values. (bind-extracted-keywords ((1 2 :x 3) data :x) <body>) Results in the
-body being executed with data bound to (1 2) and x bound to 3.
+values. 
+
+    (bind-extracted-keywords ((1 2 :x 3) data :x) <body>)
+Results in the body being executed with data bound to (1 2) and x bound to 3.
 
 ## quotef
 #### Macro
 #### Parameters: setf-spec
-(defmacro quotef (setf-spec)
-  `(setf ,setf-spec `(quote ,,setf-spec)))
+Cause the item at the targeted location to become quoted:
 
+    > (defparameter *list* '(zero one two three))
+    > (quotef (elt *list* 2))
+    > *list*
+    (ZERO ONE 'TWO THREE)
+    
 ## quoted-p
 #### Function
 #### Parameters: item
@@ -118,8 +126,7 @@ A predicate to detect 0 length sequences.
 #### Function
 #### Parameters: seq seq2 
 Given two sequences, are they the same until one runs out? This function
-does not care which sequence contains the other. Use sequence-starts-with if
-you need something more specific.
+does not care which sequence contains the other. Use sequence-starts-with for more specific results.
 
 ## sequence-starts-with
 #### Function
@@ -136,6 +143,9 @@ Does the sequence end with the test sequence?
 #### Parameters: filler strings
 Returns a string consisting of one each of the items in `strings` with `filler` interspersed between all of the items.
 
+    > (string-join " and " '("one" "two" "three"))
+    "one and two and three"
+
 ## **whitespace-characters**
 #### List
 A list of the characters that can represent whitespace in a common lisp string: (#\Space #\Newline #\Backspace #\Tab #\Linefeed #\Page #\Return #\Rubout)
@@ -145,15 +155,10 @@ A list of the characters that can represent whitespace in a common lisp string: 
 #### Parameters: a b
 Broad version of string-equal. Will take input that is not a string or symbol.
 
-## string-equal-caseless
-#### Function
-#### Parameters: a b
-Are two strings equal when case is ignored?
-
 ## string-equal-case
 #### Function
 #### Parameters: 
-A strictly case sensitive version of string-equal.
+A case sensitive version of string-equal.
 
 ## truncate-string
 #### Function
@@ -195,7 +200,8 @@ Determine if an item qualifies as a plist
 #### Function
 #### Parameters: hash &key test mode
 Returns a new hash table with keys and values swapped:
-(:a 1 :b 3 :c 5) => (1 :a 3 :b 5 :c)
+    
+    (:a 1 :b 3 :c 5) => (1 :a 3 :b 5 :c)
 
 The hash table test can be set with :test. The method of value collection can
 be controlled with :mode. Modes are those available for
@@ -204,9 +210,9 @@ cl-hash-util:collecting-hash-table.
 ## rekey
 #### Function
 #### Parameters: store mapping &key ignore-missing test
-Takes a store (one of hash, alist or plist) and a mapping (also a hash, alist or plist) and returns a new hash table with the values from store rekeyed according to the oldkey -> newkey pairs found in mapping. Ignore-missing instructs rekey on what to do when a key is found in store but not in mapping. If true, rekey will drop the item that has no match. When false, it will include the item as is.
+Takes a store (one of hash, alist or plist) and a mapping (also a hash, alist or plist) and returns a new hash table with the values from store rekeyed according to the oldkey -> newkey pairs found in mapping. Ignore-missing instructs rekey on what to do when a key is found in `store` but not in `mapping`. If true, rekey will drop the item that has no match. When false, it will include the item as is.
 
-Test will be passed to the newly created result hash.
+The result hash table will be created with the supplied `test` parameter.
 
 ## do-alist
 #### Macro
@@ -250,10 +256,10 @@ Returns the last item in a list proper.
 ## chunk
 #### Function
 #### Parameters: n list
-(defun chunk (n alist)
-  (if (> (list-length alist) n)
-      (cons (subseq alist 0 n) (chunk n (nthcdr n alist)))
-      (list alist)))
+Breaks a list up into n sized chunks.
+
+    >(chunk 3 '(a b c d e f g))
+    ((A B C) (D E F) (G))
 
 ## flatten-1
 #### Function
@@ -296,7 +302,7 @@ Returns a copy of `sequence` without items that are a member of `things`. You ca
 ## splitfilter
 #### Function
 #### Parameters: predicate list
-Performs the remove-if and remove-if-not operations on a list simultaneously, returning each list as the first and second values respectively.
+Performs the remove-if-not and remove-if operations on a list simultaneously, returning each list as the first and second values respectively.
 
 ## split-sequence-on-subseq
 #### Function
@@ -547,7 +553,7 @@ Certain forms are awkward to debug using plain print. These tools provide some e
 ## pif
 #### Macro
 #### Parameters: test then &optional else
-This macro is a drop in replacement for if. It prints the test expression and the result of the test, indicating which way the test has branched.
+This macro is a drop in replacement for if. It prints the test expression and the result of the test, indicating which way the if statement has branched.
 
 ## print-lambda
 #### Macro
@@ -576,6 +582,6 @@ For situations where print can't reach out. Put an item into storage for later r
 
 ## dive
 #### Function
-Retrieve dumped items.
+Retrieve dumped item.
 
 
