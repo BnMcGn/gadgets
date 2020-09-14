@@ -24,7 +24,6 @@
            :assoc-cdr
            :assoc-all
            :xsubseq
-           :apply-compose
            :fetch-keyword
            :extract-keywords
            :bind-extracted-keywords

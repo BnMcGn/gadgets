@@ -589,7 +589,6 @@ stop:
 ;;; Execution control
 ;;;
 
-
 (defmacro or2 (&rest clauses)
   "A version of or that bases its decision on the second value of each clause. Forms that return no second value are considered T."
   (with-gensyms (blok)
@@ -602,14 +601,6 @@ stop:
                        (elt res 1))
                  (return-from ,blok (car res)))))
           clauses))))
-
-(defun apply-compose (&rest functions)
-  (lambda (&rest whatever)
-    (labels ((func (data funcs)
-               (if funcs
-                   (apply (car funcs) (func data (cdr funcs)))
-                   whatever)))
-      (func whatever functions))))
 
 (defmacro do-window ((var/s source
                             &key (size 2) (step 1)

@@ -119,7 +119,6 @@
 (is 2 (or2 (values 1 nil) 2))
 (is 1 (or2 (values 1) 2))
 
-;;apply-compose
 ;;fetch-keyword
 (is-values (fetch-keyword :x '(1 2 3 :x 4 5)) '(4 t))
 (is-values (fetch-keyword :y '(1 2 3 :x 4 5)) '(nil nil))
