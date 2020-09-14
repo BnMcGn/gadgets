@@ -484,6 +484,7 @@ Like print, but prints - and passes on - all values received. Useful for debuggi
 For situations where print can't reach out. Put an item into storage for later retrieval by dive.
 
 ## dive
-#### Function Retrieve dumped item.
+#### Function
+Retrieve dumped item.
 
 
