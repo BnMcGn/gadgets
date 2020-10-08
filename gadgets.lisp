@@ -142,10 +142,9 @@ string or a symbol"
   "Return the input as a string unless it can be recognized as an integer."
   (if (numberp x)
       x
-      (handler-case
-          (parse-integer x)
-        #+:sbcl (sb-int:simple-parse-error () x)
-        #+:ccl (ccl::parse-integer-not-integer-string () x))))
+      (if (stringp x)
+          (or (ignore-errors (parse-integer x)) x)
+          (error "STRING-UNLESS-NUMBER: argument is not a number or a string : ~s" x))))
 
 (defun symbol-unless-number (x)
   "Convert the input string into a symbol unless it can be converted into a
