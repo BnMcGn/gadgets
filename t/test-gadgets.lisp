@@ -96,12 +96,10 @@
 
 ;;do-hash-table
 (let ((data (hu:alist->hash '((:a . 1) (:b . 2) (:c . 3)))))
-  (let ((k nil)
-        (v nil))
+  (let ((v nil))
     (do-hash-table (key value data)
-      (setf k key)
-      (setf v value))
-    (is :c k)
+      (when (eq key :c)
+        (setf v value)))
     (is 3 v))
 
   ;;key-in-hash?
@@ -139,8 +137,8 @@
 (defparameter test2::var1 2)
 (defparameter test2::var2 3)
 (use-package-with-shadowing 'test2 'test1)
-(is 2 test1::var1)
-(is 3 test1::var2)
+(is (symbol-value (read-from-string "test1::var1")) 2)
+(is (symbol-value (read-from-string "test1::var2")) 3)
 
 ;;range
 (is '(0 1 2 3) (range 4))
