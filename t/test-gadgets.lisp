@@ -4,39 +4,39 @@
 (in-package :test-gadgets)
 
 
-(plan 92)
+(plan 132)
 
 ;;symb
-(is 'qwer (symb 'qw 'er))
+(is (symb 'qw 'er) 'qwer)
 
 ;;capitalize-first
-(is "Asdf" (capitalize-first "asdf"))
+(is (capitalize-first "asdf") "Asdf")
 
 ;;to-lowercase
-(is "asdf" (to-lowercase "AsDF"))
+(is (to-lowercase "AsDF") "asdf")
 
 ;;to-uppercase
-(is "ASDF" (to-uppercase "aSdf"))
+(is (to-uppercase "aSdf") "ASDF")
 
 ;;string-unless-number
-(is "asdf" (string-unless-number "asdf"))
-(is 1 (string-unless-number "1"))
-(is "1.0" (string-unless-number "1.0"))
+(is (string-unless-number "asdf") "asdf")
+(is (string-unless-number "1") 1)
+(is (string-unless-number "1.0") "1.0")
 
 ;;symbol-unless-number
-(is 'asdf (symbol-unless-number "asdf"))
-(is 5 (symbol-unless-number "5"))
+(is (symbol-unless-number "asdf") 'asdf)
+(is (symbol-unless-number "5") 5)
 
 ;;not-empty
 (ok (not-empty "asdf"))
 (ok (not (not-empty "")))
 
 ;;ret
-(is 4 (ret x 3 (incf x)))
+(is (ret x 3 (incf x)) 4)
 
 ;;def-as-func
 (def-as-func test-symbol (lambda () 3))
-(is 3 (test-symbol))
+(is (test-symbol) 3)
 
 ;;sequences-start-same
 (ok (sequences-start-same "asdf" "as"))
@@ -59,10 +59,10 @@
 (ok (not (sequence-ends-with "df" "asdf")))
 
 ;;assoc-all
-(is '(1 4) (assoc-all :a '((:a . 1) (:b . 2) (:c . 3) (:a . 4))))
+(is (assoc-all :a '((:a . 1) (:b . 2) (:c . 3) (:a . 4))) '(1 4))
 
 ;;assoc-or
-(is '(:c . 3) (assoc-or '(:e :t :c) '((:a . 1) (:b . 2) (:c . 3) (:a . 4))))
+(is (assoc-or '(:e :t :c) '((:a . 1) (:b . 2) (:c . 3) (:a . 4))) '(:c . 3))
 
 ;;alist-p
 (ok (alist-p nil))
@@ -77,13 +77,14 @@
 (ok (not (plist-p 3)))
 
 ;;invert-hash-table
-(is '(1 3 5) (sort
-              (alexandria:hash-table-keys
-               (invert-hash-table (hu:plist->hash '(:a 1 :b 3 :c 5))))
-              #'<))
+(is (sort
+     (alexandria:hash-table-keys
+      (invert-hash-table (hu:plist->hash '(:a 1 :b 3 :c 5))))
+     #'<)
+    '(1 3 5))
 
 ;;rekey
-(is 2 (getf (hu:hash->plist (rekey '(:a 1 :b 2) '(:a :c :b :a))) :a))
+(is (getf (hu:hash->plist (rekey '(:a 1 :b 2) '(:a :c :b :a))) :a) 2)
 
 ;;do-alist
 (let ((k nil)
@@ -91,8 +92,8 @@
   (do-alist (key value '((:a . 1) (:b . 2) (:c . 3)))
     (setf k key)
     (setf v value))
-  (is :c k)
-  (is 3 v))
+  (is k :c)
+  (is v 3))
 
 ;;do-hash-table
 (let ((data (hu:alist->hash '((:a . 1) (:b . 2) (:c . 3)))))
@@ -100,22 +101,22 @@
     (do-hash-table (key value data)
       (when (eq key :c)
         (setf v value)))
-    (is 3 v))
+    (is v 3))
 
   ;;key-in-hash?
   (ok (key-in-hash? :b data))
   (ok (not (key-in-hash? :d data))))
 
 ;;xsubseq
-(is "asty" (xsubseq "asdfquerty" 2 7 :type 'string))
+(is (xsubseq "asdfquerty" 2 7 :type 'string) "asty")
 
 ;;sequence->list
-(is #\a (car (sequence->list "asdf")))
+(is (car (sequence->list "asdf")) #\a)
 
 ;;or2
-(is 1 (or2 (values 1 t) 2))
-(is 2 (or2 (values 1 nil) 2))
-(is 1 (or2 (values 1) 2))
+(is (or2 (values 1 t) 2) 1)
+(is (or2 (values 1 nil) 2) 2)
+(is (or2 (values 1) 2) 1)
 
 ;;fetch-keyword
 (is-values (fetch-keyword :x '(1 2 3 :x 4 5)) '(4 t))
@@ -124,13 +125,15 @@
 ;;extract-keywords
 ;;bind-extracted-keywords
 (bind-extracted-keywords ('(one two :three 3 :four 5 :eight 7 9) other :three :four)
-  (is 3 three)
-  (is 5 four)
-  (is 'one (car other))
+  (is three 3)
+  (is four 5)
+  (is (car other) 'one)
   (ok (member :eight other))
   (ok (not (member :three other))))
 
 ;;use-package-with-shadowing
+(when (find-package 'test1) (delete-package 'test1))
+(when (find-package 'test2) (delete-package 'test2))
 (defpackage #:test1 (:export :var1))
 (defpackage #:test2 (:export :var1 :var2))
 (defparameter test1::var1 1)
@@ -141,30 +144,30 @@
 (is (symbol-value (read-from-string "test1::var2")) 3)
 
 ;;range
-(is '(0 1 2 3) (range 4))
-(is '(2 3) (range 2 4))
-(is nil (range 4 2))
-(is '(0 2) (range 0 4 2))
-(is '(3 2 1) (range 3 0 -1))
-(is nil (range 0 3 -1))
+(is (range 4) '(0 1 2 3))
+(is (range 2 4) '(2 3))
+(is (range 4 2) nil)
+(is (range 0 4 2) '(0 2))
+(is (range 3 0 -1) '(3 2 1))
+(is (range 0 3 -1) nil)
 
 ;;do-window
-(is '(3 5 7 9 11)
-    (cl-utilities:collecting
+(is (cl-utilities:collecting
         (do-window (x '(1 2 3 4 5 6))
-          (cl-utilities:collect (apply #'+ x)))))
-(is '(3 7 11)
-    (cl-utilities:collecting
+          (cl-utilities:collect (apply #'+ x))))
+    '(3 5 7 9 11))
+(is (cl-utilities:collecting
         (do-window (x '(1 2 3 4 5 6) :step 2)
-          (cl-utilities:collect (apply #'+ x)))))
-(is '(3 7)
-    (cl-utilities:collecting
+          (cl-utilities:collect (apply #'+ x))))
+    '(3 7 11))
+(is (cl-utilities:collecting
         (do-window (x '(1 2 3 4 5) :step 2)
-          (cl-utilities:collect (apply #'+ x)))))
-(is '(1 5 9)
-    (cl-utilities:collecting
+          (cl-utilities:collect (apply #'+ x))))
+    '(3 7))
+(is (cl-utilities:collecting
         (do-window (x '(1 2 3 4 5) :step 2 :start-padding '(0))
-          (cl-utilities:collect (apply #'+ x)))))
+          (cl-utilities:collect (apply #'+ x))))
+    '(1 5 9))
 (is-print
  (do-window ((a b c) '(1 2 3 4 5 6) :size 3)
    (when (eq c 3)
@@ -194,69 +197,69 @@
 (is-values (tryit 1) '(1 t))
 
 ;;chunk
-(is '(5) (last-car (chunk 2 '(1 2 3 4 5))))
+(is (last-car (chunk 2 '(1 2 3 4 5))) '(5))
 
 ;;flatten-1
 (let ((res (flatten-1 '((1 2 3) nil (nil) ((4 5) (6 7)) (8 . 9)))))
-  (is 1 (car res))
-  (is 8 (length res))
-  (is t (listp (fifth res))))
+  (is (car res) 1)
+  (is (length res) 8)
+  (is (listp (fifth res)) t))
 
 ;;flatten-when
 (let* ((data '((a (:b (c))) (:b 9 (c) (:d))))
        (res1 (flatten-when (alexandria:compose #'keywordp #'car) data))
        (res2 (flatten-when (alexandria:compose #'keywordp #'car)
                            data :descend-all t)))
-  (is 2 (length (car res1)))
-  (is 5 (length res1))
-  (is :d (fifth res1))
-  (is 3 (length (car res2)))
-  (is 5 (length res2))
-  (is :d (fifth res2))
-  (is :b (second (car res2))))
+  (is (length (car res1)) 2)
+  (is (length res1) 5)
+  (is (fifth res1) :d)
+  (is (length (car res2)) 3)
+  (is (length res2) 5)
+  (is (fifth res2) :d)
+  (is (second (car res2)) :b))
 
 ;;flatten-1-when
 (let ((res (flatten-1-when
             (alexandria:compose #'keywordp #'car)
             '((a (:b (c))) (:b 9 (c) (:d))))))
-  (is 5 (length res))
-  (is :b (second res))
+  (is (length res) 5)
+  (is (second res) :b)
   (ok (listp (fifth res))))
 
 ;;three-way
-(is '(a b c)
-    (mapcar (lambda (x) (three-way x 'a 'b 'c)) '(-1 0 1)))
+(is (mapcar (lambda (x) (three-way x 'a 'b 'c)) '(-1 0 1))
+    '(a b c))
 
 ;;string-equal-case
 (ok (string-equal-case "a" :|a|))
-(is nil (string-equal-case "a" :a))
-(is nil (string-equal-case 'a 'b))
+(is (string-equal-case "a" :a) nil)
+(is (string-equal-case 'a 'b) nil)
 (ok (string-equal-case 'cl-user::x 'x))
-(is nil (string-equal-case '|asdf| "ASDF"))
+(is (string-equal-case '|asdf| "ASDF") nil)
 
 ;;string-equal-multiple
 (ok (string-equal-multiple :a "a[]"))
 (ok (string-equal-multiple :a "A"))
-(is nil (string-equal-multiple "a()" "a[]"))
+(is (string-equal-multiple "a()" "a[]") nil)
 
 #| Removed from gadgets due to lack of clarity
 ;;match-a-symbol
-(is :x (match-a-symbol "X" '(:x)))
+(is (match-a-symbol "X" '(:x)) :x)
 (ok (null (match-a-symbol "y" '(:x))))
 
 ;;match-various
 (let ((matcher (match-various '(:a b "c" 4))))
-  (is :a (funcall matcher "a"))
-  (isnt "c" (funcall matcher "C"))
-  (is 'b (funcall matcher "B"))
-  (is 4 (funcall matcher "4"))
+  (is (funcall matcher "a") :a)
+  (isnt (funcall matcher "C") "c")
+  (is '(funcall matcher "B") b)
+  (is (funcall matcher "4") 4)
   (ok (null (funcall matcher "asdf"))))
 |#
 
 ;;part-on-index
-(is '(4 5 6) (nth-value 1 (part-on-index '(1 2 3 4 5 6) 3)))
-(is nil (nth-value 1 (part-on-index '(1 2 3 4 5 6) 6)))
-(is nil (nth-value 1 (part-on-index '(1 2 3 4 5 6) 7)))
+(is (nth-value 1 (part-on-index '(1 2 3 4 5 6) 3)) '(4 5 6))
+(is (nth-value 1 (part-on-index '(1 2 3 4 5 6) 6)) nil)
+(is (nth-value 1 (part-on-index '(1 2 3 4 5 6) 7)) nil)
 (is-error (nth-value 1 (part-on-index '(1 2 3 4 5 6) 7 :fail t)) 'simple-error)
 
 ;;part-on-true
@@ -270,10 +273,10 @@
 (is-error (part-after-true #'evenp '(1 3 5 7 9) :fail t) 'simple-error)
 
 ;;remove-if-member
-(is '(1 2 4) (remove-if-member '(1 2 3 4 5) '(3 5 9)))
+(is (remove-if-member '(1 2 3 4 5) '(3 5 9)) '(1 2 4))
 
 ;;splitfilter
-(is '(1 3 5) (nth-value 1 (splitfilter #'evenp (range 6))))
+(is (nth-value 1 (splitfilter #'evenp (range 6))) '(1 3 5))
 
 ;;split-sequence-on-subseq
 (is-values (split-sequence-on-subseq "sd" "asdf") '("a" "f" "sd"))
@@ -286,27 +289,27 @@
 (is-values (first-match #'evenp '(1 3 5)) '(nil nil))
 
 ;;ordered-unique
-(is '(1 2 3 4 5) (ordered-unique '(1 1 2 3 2 1 4 5 1 2 4)))
+(is (ordered-unique '(1 1 2 3 2 1 4 5 1 2 4)) '(1 2 3 4 5))
 
 ;;part-tree
 (multiple-value-bind (outer inner)
     (part-tree
      (lambda (x) (eq 'deepest (car (alexandria:ensure-list x))))
      '(deep (deeper (deeperer (deepest (deepester you-are-here))))))
-  (is 'deepest (car inner))
-  (is 'deep (car (funcall outer nil)))
-  (is :x (cadr (cadadr (funcall outer :x)))))
+  (is (car inner) 'deepest)
+  (is (car (funcall outer nil)) 'deep)
+  (is (cadr (cadadr (funcall outer :x))) :x))
 (multiple-value-bind (outer inner)
     (part-tree #'keywordp nil)
-  (is nil inner)
-  (is nil outer))
+  (is inner nil)
+  (is outer nil))
 
 ;;aif2only
 
 ;;do-file-by-line
 ;;map-file-by-line
-(is '(3 3 5 4 4) (map-file-by-line
-                  #'length (asdf:system-relative-pathname 'gadgets "t/sample.txt")))
+(is (map-file-by-line
+     #'length (asdf:system-relative-pathname 'gadgets "t/sample.txt")) '(3 3 5 4 4))
 
 ;;do-list-with-rest
 ;;preserve-other-values
@@ -320,10 +323,10 @@
 
 ;;maplist/step
 ;;map-by-2
-(is '((1 2) (3 4)) (map-by-2 (lambda (x y) (list x y)) '(1 2 3 4)))
+(is (map-by-2 (lambda (x y) (list x y)) '(1 2 3 4)) '((1 2) (3 4)))
 
 ;;mapcan-by-2
-(is '(1 2 3 4) (mapcan-by-2 (lambda (x y) (list x y)) '(1 2 3 4)))
+(is (mapcan-by-2 (lambda (x y) (list x y)) '(1 2 3 4)) '(1 2 3 4))
 
 ;;map-assoc
 ;;with-file-lock
