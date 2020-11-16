@@ -811,6 +811,15 @@ The returned closure should be called with a single argument. It will return the
    (do-file-by-line (line stream-or-path)
      (cl-utilities:collect (funcall function line)))))
 
+(defun edit-file-in-place (path function)
+  "Edit an existing file in place. The file location is specified in path. An input and an output stream are passed as parameters to the supplied function. The input function reads from the specified file; the output stream writes to a temporary file. The supplied function is assumed to read from the input stream, make any desired changes, and write to the output stream. If it returns without error, the streams are closed and the temporary file is copied over the original."
+  (uiop:with-temporary-file (:pathname tmpname :stream outstream)
+    (with-open-file (instream path)
+      (funcall function instream outstream))
+    :close-stream
+    ;;If we get this far, no errors have occurred and it should be safe to replace
+    (uiop:copy-file tmpname path)))
+
 (defmacro with-file-lock ((path &key (interval 0.1)) &body body)
   "Get an exclusive lock on a file. If lock cannot be obtained, keep
 trying after waiting a while"

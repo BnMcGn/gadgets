@@ -108,4 +108,5 @@
            :sequence->list
            :homedir-relative-pathname
            :make-clock
-   :list-set-place))
+           :list-set-place
+           :edit-file-in-place))
