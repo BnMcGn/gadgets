@@ -109,4 +109,7 @@
            :homedir-relative-pathname
            :make-clock
            :list-set-place
-           :edit-file-in-place))
+   :edit-file-in-place
+           :user-cache-directory
+   :user-config-directory
+   :user-data-directory))

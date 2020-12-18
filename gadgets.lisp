@@ -884,6 +884,50 @@ trying after waiting a while"
       ,@body)
     :want-pathname-p pathname)
 
+(defun user-cache-directory ()
+  "OS independent functions to supply the recommended locations for user writable cache, config and data directories on the current platform. It's best not to place application files in the returned directory. 'common-lisp/[appname]' or perhaps '[appname]/' should first be appended to the diectory."
+  #+(or windows win32 mswindows)
+  (or (uiop:getenv "APPDATA")
+      (homedir-relative-pathname (make-pathname :directory (list :relative "AppData" "Local"))))
+  #+linux
+  (or (uiop:getenv "XDG_CACHE_HOME")
+      (homedir-relative-pathname (make-pathname :directory (list :relative ".cache"))))
+  #+(or macosx apple)
+  (homedir-relative-pathname (make-pathname :directory (list :relative "Library" "Caches")))
+  #-(or windows win32 mswindows linux macosx apple)
+  (homedir-relative-pathname (make-pathname :directory (list :relative ".cache")))
+  )
+
+
+(defun user-config-directory ()
+  "OS independent functions to supply the recommended locations for user writable cache, config and data directories on the current platform. It's best not to place application files in the returned directory. 'common-lisp/[appname]' or perhaps '[appname]/' should first be appended to the diectory."
+  #+(or windows win32 mswindows)
+  (or (uiop:getenv "APPDATA")
+      (homedir-relative-pathname (make-pathname :directory (list :relative "AppData" "Local"))))
+  #+linux
+  (or (uiop:getenv "XDG_CONFIG_HOME")
+      (homedir-relative-pathname (make-pathname :directory (list :relative ".config"))))
+  #+(or macosx apple)
+  (homedir-relative-pathname
+   (make-pathname :directory (list :relative "Library" "Application Support")))
+  #-(or windows win32 mswindows linux macosx apple)
+  (homedir-relative-pathname (make-pathname :directory (list :relative ".config")))
+    )
+
+(defun user-data-directory ()
+  "OS independent functions to supply the recommended locations for user writable cache, config and data directories on the current platform. It's best not to place application files in the returned directory. 'common-lisp/[appname]' or perhaps '[appname]/' should first be appended to the diectory."
+  #+(or windows win32 mswindows)
+  (or (uiop:getenv "APPDATA")
+      (homedir-relative-pathname (make-pathname :directory (list :relative "AppData" "Local"))))
+  #+linux
+  (or (uiop:getenv "XDG_DATA_HOME")
+      (homedir-relative-pathname (make-pathname :directory (list :relative ".local" "share"))))
+  #+(or macosx apple)
+  (homedir-relative-pathname (make-pathname :directory (list :relative "Library" "Caches")))
+  #-(or windows win32 mswindows linux macosx apple)
+  (homedir-relative-pathname (make-pathname :directory (list :relative ".local" "share")))
+  )
+
 ;;;
 ;;; Debugging printers
 ;;;
