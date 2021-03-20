@@ -174,6 +174,10 @@ number."
   "A predicate to detect 0 length sequences."
   (and itm (< 0 (length itm)) itm)) ;Return item if it isn't empty.
 
+(defun length1 (itm)
+  "Does item have a length of 1?"
+  (and itm (eq 1 (length itm))))
+
 (defun sequences-start-same (seq seq2)
   "Given two sequences, are they the same until one runs out? This function
 does not care which sequence contains the other. Use sequence-starts-with if
@@ -192,6 +196,11 @@ you need something more specific."
         (dotimes (i slen t)
           (unless (eq (elt seq i) (elt testseq i))
             (return nil))))))
+
+(defun sequences-end-same (seq1 seq2)
+  "Given two sequences, does the tail of the longer match the shorter over its length?
+If the sequences are the same length then they must be equal to satisfy the predicate."
+  (sequences-start-same (reverse seq1) (reverse seq2)))
 
 (defun sequence-ends-with (seq testseq)
   "Does the sequence end with the test sequence?"
@@ -322,8 +331,11 @@ cl-hash-util:collecting-hash-table."
 (defmacro do-hash-table ((key value source) &body body)
   (once-only (source)
     `(dolist (,key (alexandria:hash-table-keys ,source))
-       (let ((,value (gethash ,key ,source)))
-         ,@body))))
+       ,(if (listp value)
+            `(destructuring-bind ,value (gethash ,key ,source)
+               ,@body)
+            `(let ((,value (gethash ,key ,source)))
+               ,@body)))))
 
 (defun key-in-hash? (key hashtable)
   (nth-value 1 (gethash key hashtable)))
@@ -358,6 +370,10 @@ cl-hash-util:collecting-hash-table."
 
 (defun last-car (list)
   (car (last list)))
+
+(defun nelt (sequence index)
+  "Negative elt. Count in from the end of the sequence. 0 fetches the last element."
+  (elt (reverse sequence) index))
 
 (defun chunk (n alist)
   (if (> (list-length alist) n)

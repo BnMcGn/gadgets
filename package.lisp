@@ -112,4 +112,8 @@
    :edit-file-in-place
            :user-cache-directory
    :user-config-directory
-   :user-data-directory))
+           :user-data-directory
+   :first-match-index
+           :nelt
+   :sequences-end-same
+   :length1))
