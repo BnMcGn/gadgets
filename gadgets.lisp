@@ -241,6 +241,9 @@ If the sequences are the same length then they must be equal to satisfy the pred
                      indicator)
         str)))
 
+(defun dos-to-unix (string)
+  (apply #'strcat (split-sequence:split-sequence #\Return string)))
+
 ;;;
 ;;; Keyed collection
 ;;;

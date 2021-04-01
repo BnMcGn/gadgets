@@ -116,4 +116,5 @@
    :first-match-index
            :nelt
    :sequences-end-same
-   :length1))
+           :length1
+           :dos-to-unix))
