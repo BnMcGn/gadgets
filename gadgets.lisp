@@ -356,6 +356,16 @@ cl-hash-util:collecting-hash-table."
         stor)
       data))
 
+(defmacro hashval! ((var key hash) &body body)
+  "Tool for updating a hash table value. Binds the value found under KEY in HASH to VAR for duration of the macro. The return value of the body is placed into the hash table slot."
+  (let ((keysym (gensym "key"))
+        (hashsym (gensym "hash")))
+    `(let ((,keysym ,key)
+           (,hashsym ,hash))
+       (setf (gethash ,keysym ,hashsym)
+             (let ((,var (gethash ,keysym ,hashsym)))
+               ,@body)))))
+
 
 ;;;
 ;;; List and sequence

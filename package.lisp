@@ -117,4 +117,5 @@
            :nelt
    :sequences-end-same
            :length1
-           :dos-to-unix))
+   :dos-to-unix
+   :hashval!))
