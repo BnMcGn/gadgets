@@ -890,6 +890,7 @@ trying after waiting a while"
 (defun call-with-temporary-directory (thunk &key (want-pathname-p t))
   (loop
      with donep = nil
+     with res = nil
      until donep
      do
        (uiop:with-temporary-file (:pathname tfile :type "lck")
@@ -900,22 +901,25 @@ trying after waiting a while"
              (setf donep t)
              (ensure-directories-exist dirname)
              (unwind-protect
-                  (if want-pathname-p
-                      (funcall thunk dirname)
-                      (uiop:with-current-directory (dirname)
-                        (funcall thunk)))
+                  (setf res
+                        (multiple-value-list
+                         (if want-pathname-p
+                             (funcall thunk dirname)
+                             (uiop:with-current-directory (dirname)
+                               (funcall thunk)))))
                (uiop:delete-directory-tree
                 dirname
-                :validate t)))))))
+                :validate t)))))
+     finally (return (values-list res))))
 
 (defmacro with-temporary-directory ((&key pathname) &body body)
   `(call-with-temporary-directory
     (lambda (,@(when pathname
                  (unless (symbolp pathname)
                    (error "Pathname must be a symbol or NIL"))
-                 (list pathname))))
+                 (list pathname)))
       ,@body)
-    :want-pathname-p ,pathname)
+    :want-pathname-p ,(if pathname t nil)))
 
 (defun user-cache-directory ()
   "OS independent functions to supply the recommended locations for user writable cache, config and data directories on the current platform. It's best not to place application files in the returned directory. 'common-lisp/[appname]' or perhaps '[appname]/' should first be appended to the diectory."
