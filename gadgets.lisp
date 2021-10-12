@@ -4,10 +4,14 @@
 
 ;;; "gadgets" goes here. Hacks and glory await!
 
-(defun symbolize (entity &key (package *package*))
-  (if (symbolp entity)
-      (intern (mkstr entity) package)
-      (intern (string-upcase entity) package)))
+(defun symbolize (entity &key package)
+  (let ((package (cond
+                   ((null package) *package*)
+                   ((packagep package) package)
+                   ((or (stringp package) (symbolp package)) (find-package package)))))
+    (if (symbolp entity)
+        (intern (mkstr entity) package)
+        (intern (string-upcase entity) package))))
 
 (defun mkstr (&rest args)
   (with-output-to-string (s)
@@ -911,7 +915,7 @@ trying after waiting a while"
                    (error "Pathname must be a symbol or NIL"))
                  (list pathname))))
       ,@body)
-    :want-pathname-p pathname)
+    :want-pathname-p ,pathname)
 
 (defun user-cache-directory ()
   "OS independent functions to supply the recommended locations for user writable cache, config and data directories on the current platform. It's best not to place application files in the returned directory. 'common-lisp/[appname]' or perhaps '[appname]/' should first be appended to the diectory."
