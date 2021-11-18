@@ -33,7 +33,7 @@
   `(setf (symbol-function ',var) ,func-form))
 
 (defun fetch-keyword (key alist &key (in-list t))
-  "Find if a key is in a list, return the next item after it. if checklist
+  "Find if a key is in a list, return the next item after it. if in-list
  is true, test the first element of any sublists for the key and if found
 return rest of list as parameter. A bit coarser in function than getf. Will
 tolerate improper plists."
@@ -247,6 +247,16 @@ If the sequences are the same length then they must be equal to satisfy the pred
 
 (defun dos-to-unix (string)
   (apply #'strcat (split-sequence:split-sequence #\Return string)))
+
+(defun string-strip (string &optional (bag *whitespace-characters*))
+  "Strip whitespace characters from the beginning and end of a string. An alternate set of characters to strip can be supplied as a list in the optional second parameter."
+  (or (strip-leading (strip-trailing string bag) bag)) "")
+
+(defun strip-leading (string &optional (bag *whitespace-characters*))
+  (nth-value 1 (part-on-true (lambda (x) (not (member x bag))) string)))
+
+(defun strip-trailing (string &optional (bag *whitespace-characters*))
+  (reverse (nth-value 1 (part-on-true (lambda (x) (not (member x bag))) (reverse string)))))
 
 ;;;
 ;;; Keyed collection

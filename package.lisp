@@ -118,4 +118,7 @@
    :sequences-end-same
            :length1
    :dos-to-unix
-   :hashval!))
+           :hashval!
+           :string-strip
+   :strip-leading
+   :strip-trailing))
