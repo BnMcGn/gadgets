@@ -250,7 +250,7 @@ If the sequences are the same length then they must be equal to satisfy the pred
 
 (defun string-strip (string &optional (bag *whitespace-characters*))
   "Strip whitespace characters from the beginning and end of a string. An alternate set of characters to strip can be supplied as a list in the optional second parameter."
-  (or (strip-leading (strip-trailing string bag) bag)) "")
+  (or (strip-leading (strip-trailing string bag) bag) ""))
 
 (defun strip-leading (string &optional (bag *whitespace-characters*))
   (nth-value 1 (part-on-true (lambda (x) (not (member x bag))) string)))
