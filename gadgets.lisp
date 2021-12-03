@@ -555,6 +555,17 @@ cl-hash-util:collecting-hash-table."
         when (funcall predicate itm)
         do (return-from first-match-index i)))
 
+(defun last-match-index (predicate list)
+  "Returns the index of the last item in list that satifies predicate."
+  (loop for i from (1- (length list)) downto 0
+          thereis (and (funcall predicate (elt list i)) i)))
+
+(defun last-match (predicate list)
+  "Returns the first item from the end of the list that satisfies predicate."
+  (alexandria:if-let ((res (last-match-index predicate list)))
+    (values (elt list res) t)
+    (values nil nil)))
+
 (defun ordered-unique (list &key (test #'eql))
   "Returns a unique list of the items in list in the order in which they first
 appear."
