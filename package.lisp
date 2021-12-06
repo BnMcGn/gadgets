@@ -121,4 +121,6 @@
            :hashval!
            :string-strip
    :strip-leading
-   :strip-trailing))
+   :strip-trailing
+           :last-match-index
+           :last-match))
