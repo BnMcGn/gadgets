@@ -30,7 +30,9 @@
 
 (defmacro def-as-func (var func-form)
   "Set a variable in the function namespace."
-  `(setf (symbol-function ',var) ,func-form))
+  (if (symbolp var)
+      `(setf (symbol-function ',var) ,func-form)
+      `(setf (symbol-function ,var) ,func-form)))
 
 (defun fetch-keyword (key alist &key (in-list t))
   "Find if a key is in a list, return the next item after it. if in-list
