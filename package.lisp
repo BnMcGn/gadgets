@@ -123,4 +123,5 @@
    :strip-leading
    :strip-trailing
            :last-match-index
-           :last-match))
+           :last-match
+           :with-alist-keys))

@@ -356,6 +356,12 @@ cl-hash-util:collecting-hash-table."
             `(let ((,value (gethash ,key ,source)))
                ,@body)))))
 
+(defmacro with-alist-keys ((keys alist &rest hash-table-initargs) &body body)
+  `(cl-hash-util:with-keys
+       ,keys
+       (apply #'alexandria:alist-hash-table ,alist ,hash-table-initargs)
+     ,@body))
+
 (defun key-in-hash? (key hashtable)
   (nth-value 1 (gethash key hashtable)))
 
