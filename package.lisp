@@ -28,7 +28,6 @@
            :extract-keywords
            :bind-extracted-keywords
            :range
-           :loop-window
            :eval-always
            :last-car
            :trycar
@@ -124,4 +123,5 @@
    :strip-trailing
            :last-match-index
            :last-match
-           :with-alist-keys))
+           :with-alist-keys
+           :write-stream-to-file))

@@ -882,6 +882,12 @@ The returned closure should be called with a single argument. It will return the
     ;;If we get this far, no errors have occurred and it should be safe to replace
     (uiop:copy-file tmpname path)))
 
+;;FIXME: pass some options
+(defun write-stream-to-file (stream path)
+  "Write the whole contents of a stream to the file at 'path', then close the file."
+  (with-open-file (s path :direction :output)
+    (uiop:copy-stream-to-stream stream s)))
+
 (defmacro with-file-lock ((path &key (interval 0.1)) &body body)
   "Get an exclusive lock on a file. If lock cannot be obtained, keep
 trying after waiting a while"
