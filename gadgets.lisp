@@ -750,6 +750,13 @@ WARNING: This isn't always a great idea for production code. Tryit will mask all
 (defun mapcan-by-2 (func list)
   (apply #'concatenate 'list (map-by-2 func list)))
 
+(defun remove-if-by-2 (func list)
+  (cl-utilities:collecting
+    (do-window ((k v) list :size 2 :step 2)
+      (when (funcall func k v)
+        (cl-utilities:collect k)
+        (cl-utilities:collect v)))))
+
 (defun map-assoc (func alist)
   (mapcar (lambda (x) (funcall func (car x) (cdr x))) alist))
 
@@ -1066,5 +1073,6 @@ trying after waiting a while"
 (defun dive ()
   *dump-stor*)
 
-
+(defun print-hash (ht)
+  (print (hu:hash->plist ht)))
 
