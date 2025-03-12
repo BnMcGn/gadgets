@@ -3,7 +3,7 @@ version: 2
 jobs:
   sbcl:
     docker:
-      - image: circleci/buildpack-deps:stretch-curl
+      - image: cimg/base:2022.09
     environment:
       LISP: sbcl-bin
     steps:
