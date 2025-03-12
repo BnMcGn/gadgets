@@ -26,7 +26,7 @@ jobs:
       #- run: rove foo.asd
   ccl:
     docker:
-      - image: circleci/buildpack-deps:stretch-curl
+      - image: cimg/base:2022.09
     environment:
       LISP: ccl-bin
     steps:
