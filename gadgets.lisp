@@ -753,7 +753,7 @@ WARNING: This isn't always a great idea for production code. Tryit will mask all
 (defun remove-if-by-2 (func list)
   (cl-utilities:collecting
     (do-window ((k v) list :size 2 :step 2)
-      (when (funcall func k v)
+      (unless (funcall func k v)
         (cl-utilities:collect k)
         (cl-utilities:collect v)))))
 
