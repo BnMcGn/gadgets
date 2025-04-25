@@ -126,4 +126,5 @@
            :with-alist-keys
            :write-stream-to-file
            :print-hash
-           :remove-if-by-2))
+           :remove-if-by-2
+           :tryit*))

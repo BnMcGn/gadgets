@@ -704,6 +704,16 @@ WARNING: This isn't always a great idea for production code. Tryit will mask all
         t)
      (t (e) (declare (ignore e)) (values nil nil))))
 
+(defmacro tryit* (errors &body body)
+  `(handler-case
+       (values
+        (progn ,@body)
+        t)
+     ,@(cl-utilities:collecting
+         (dolist (err errors)
+           (cl-utilities:collect
+             `(,err (e) (declare (ignore e)) (values nil nil)))))))
+
 (defmacro three-way (test minus-clause zero-clause plus-clause)
   (let ((val (gensym)))
     `(let ((,val ,test))
